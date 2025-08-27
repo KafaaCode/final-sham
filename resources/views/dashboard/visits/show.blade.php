@@ -1,0 +1,561 @@
+@extends('layouts.app')
+
+@section('title', 'تفاصيل الزيارة')
+
+@section('content')
+    <div class="container">
+        <div class="mb-1 text-center">
+            <h2 class="fw-bold text-primary">📋 تفاصيل الزيارة</h2>
+            <p class="text-muted">عرض جميع بيانات الزيارة للمريض</p>
+            <div class="text-end mb-2">
+                <a href="{{ route('visits.exportPDF', $visit->id) }}" class="btn btn-success">
+                    📄 تصدير تقرير PDF
+                </a>
+            </div>
+        </div>
+        <div class="mb-1 text-end">
+            <a href="{{ route('dashboard') }}" class="btn btn-secondary mb-1">⬅️ العودة لسجل الزيارات</a>
+        </div>
+        @if(session('success'))
+            <div class="alert alert-success p-2">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger p-2">{{ session('error') }}</div>
+        @endif
+        <div class="card shadow-sm mb-4 rounded-4">
+            <div class="card-header bg-primary rounded-top-4 text-center">
+                <h5 class="text-white mb-0 fw-bold">معلومات الزيارة</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3 p-2">
+                    <div class="col-md-8">
+                        <div class="bg-light p-1 rounded shadow-sm h-100">
+                            <h6 class="fw-bold text-primary">👨‍⚕️ الطبيب</h6>
+                            <p class="mb-2">{{ $visit->appointment->doctor->first_name }}
+                                {{ $visit->appointment->doctor->last_name }}
+                            </p>
+                            <h6 class="fw-bold text-primary">- المريض</h6>
+                            <p class="mb-2">{{ $visit->patient->first_name }}
+                                {{ $visit->patient->last_name }}
+                            </p>
+                            <h6 class="fw-bold text-success">🏥 القسم</h6>
+                            <p class="mb-2">{{ $visit->department->name }}</p>
+                            <h6 class="fw-bold text-danger">📝 التشخيص</h6>
+                            <p class="mb-2">{{ $visit->diagnosis ?? '-' }}</p>
+                            <h6 class="fw-bold text-secondary">📌 الملاحظات</h6>
+                            <p class="mb-0">{{ $visit->notes ?? '-' }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="bg-light p-1 rounded shadow-sm h-100">
+                            <h6 class="fw-bold text-warning">📅 التاريخ</h6>
+                            <p class="mb-2">{{ $visit->created_at->format('Y-m-d') }}</p>
+
+                            <h6 class="fw-bold text-info">🕒 وقت البداية</h6>
+                            <p class="mb-2">{{ optional($visit->appointment)->appointment_start_time }}</p>
+
+                            <h6 class="fw-bold text-info">🕒 وقت النهاية</h6>
+                            <p class="mb-0">{{ optional($visit->appointment)->appointment_end_time }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .card-body h6 {
+                font-size: 0.95rem;
+            }
+
+            .card-body p {
+                font-size: 0.9rem;
+            }
+        </style>
+
+        @if(auth()->user()->hasRole('فني الأشعة') || auth()->user()->hasRole('الدكتور'))
+            <div class="card shadow-sm mb-1 rounded-4">
+                <div class="card-header bg-info rounded-top-4 d-flex justify-content-between align-items-center">
+                    <h4 class="text-white">🖼️ صور الأشعة</h4>
+
+                    @if(auth()->user()->hasRole('الدكتور'))
+                        <button class="btn btn-sm btn-primary" onclick="confirmXray({{ $visit->id }})">
+                            طلب صورة
+                        </button>
+                    @endif
+
+                    @if(auth()->user()->hasRole('فني الأشعة'))
+                        <!-- زر فتح النافذة -->
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addXrayModal">
+                            ➕ إضافة صورة الأشعة
+                        </button>
+                    @endif
+                </div>
+
+                <div class="card-body">
+                    @if($visit->xRayImages->count() > 0)
+                        <div class="row g-3">
+                            @foreach($visit->xRayImages as $xray)
+                                <div class="col-md-4">
+                                    <div class="card h-100 shadow-sm">
+                                        <a href="{{ asset($xray->image_path) }}" target="_blank">
+                                            <img src="{{ asset($xray->image_path) }}" class="card-img-top mt-2" alt="صورة أشعة">
+                                        </a>
+                                        <div class="card-body">
+                                            <p><strong>📝 تقرير فني:</strong> {{ $xray->technical_report ?? '-' }}</p>
+                                            <p><strong>👨‍🔧 الفني:</strong> {{ $xray->technician_name ?? '-' }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-muted mt-1">لا توجد صور أشعة لهذه الزيارة.</p>
+                    @endif
+                </div>
+            </div>
+
+            <!-- نافذة منبثقة لإضافة صورة -->
+            <div class="modal fade" id="addXrayModal" tabindex="-1" aria-labelledby="addXrayModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content rounded-4 shadow-lg">
+                        <div class="modal-header bg-info text-white rounded-top-4">
+                            <h5 class="modal-title" id="addXrayModalLabel">➕ إضافة صورة أشعة</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                aria-label="إغلاق"></button>
+                        </div>
+                        <form action="{{ route('xrays.store') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <input type="hidden" name="visit_id" value="{{ $visit->id }}">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">📷 اختر صورة الأشعة</label>
+                                    <input type="file" name="image_path" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">📝 التقرير الفني</label>
+                                    <textarea name="technical_report" class="form-control" rows="3"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">👨‍🔧 اسم الفني</label>
+                                    <input type="text" name="technician_name" class="form-control"
+                                        value="{{ auth()->user()->name }}">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">❌ إلغاء</button>
+                                <button type="submit" class="btn btn-success">💾 حفظ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
+        @if(auth()->user()->hasRole('فني المخبر') || auth()->user()->hasRole('الدكتور'))
+            <div class="card shadow-sm mb-1 rounded-4">
+                <div class="card-header bg-warning text-dark rounded-top-4">
+                    🧪 التحاليل المخبرية
+                    @if(auth()->user()->hasRole('الدكتور'))
+                        <button class="btn btn-sm btn-primary" onclick="confirmlabTests({{ $visit->id }})">
+                            طلب تحليل
+                        </button>
+                    @endif
+
+                    @if(auth()->user()->hasRole('فني المخبر'))
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addLabTestModal">
+                            ➕ إضافة تحليل مخبري
+                        </button>
+                    @endif
+                </div>
+                <div class="card-body">
+                    @if($visit->labTests->count() > 0)
+                        <ul class="list-group list-group-flush">
+                            @foreach($visit->labTests as $lab)
+                                <li class="list-group-item">
+                                    <strong>النتيجة:</strong> {{ $lab->result ?? '-' }} <br>
+                                    <strong>تقرير فني:</strong> {{ $lab->technical_report ?? '-' }} <br>
+                                    <strong>الفني:</strong> {{ $lab->technician_name ?? '-' }}
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="text-muted mt-1">لا توجد تحاليل مخبرية لهذه الزيارة.</p>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Modal لإضافة تحليل مخبري -->
+            <div class="modal fade" id="addLabTestModal" tabindex="-1" aria-labelledby="addLabTestModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content rounded-4 shadow-lg">
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title fw-bold" id="addLabTestModalLabel">➕ إضافة تحليل مخبري</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                        </div>
+                        <form action="{{ route('lab_tests.store') }}" method="POST">
+                            @csrf
+                            <div class="modal-body">
+                                <input type="hidden" name="visit_id" value="{{ $visit->id }}">
+                                <input type="hidden" name="patient_id" value="{{ $visit->patient_id }}">
+
+                                <div class="mb-3">
+                                    <label for="result" class="form-label fw-bold">🔬 النتيجة</label>
+                                    <textarea name="result" id="result" rows="3" class="form-control" required></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="technical_report" class="form-label fw-bold">📝 التقرير الفني</label>
+                                    <textarea name="technical_report" id="technical_report" rows="3"
+                                        class="form-control"></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="technician_name" class="form-label fw-bold">👨‍🔬 اسم الفني</label>
+                                    <input type="text" name="technician_name" id="technician_name" class="form-control"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                <button type="submit" class="btn btn-success">💾 حفظ التحليل</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
+        @if(auth()->user()->hasRole('فني العمليات') || auth()->user()->hasRole('الدكتور'))
+            <div class="card shadow-sm mb-1 rounded-4">
+                <div class="card-header bg-danger text-dark rounded-top-4">
+                    ⚕️ العمليات
+                    @if(auth()->user()->hasRole('الدكتور'))
+                        <button class="btn btn-sm btn-primary" onclick="confirmSurgerys({{ $visit->id }})">
+                            طلب عملية
+                        </button>
+                    @endif
+
+                    @if(auth()->user()->hasRole('فني العمليات'))
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addSurgeryModal">
+                            ⚕️ اضافة عملية
+                        </button>
+                    @endif
+                </div>
+
+                <div class="card-body mt-2">
+                    @if($visit->surgeries->count() > 0)
+                        @foreach($visit->surgeries as $surgery)
+                            <div class="mb-3 border rounded p-3 shadow-sm">
+                                <p><strong>نوع العملية:</strong> {{ $surgery->surgery_type }}</p>
+                                <p><strong>تاريخ البداية:</strong> {{ $surgery->start_time }}</p>
+                                <p><strong>تاريخ النهاية:</strong> {{ $surgery->end_time }}</p>
+                                <p><strong>ملاحظات:</strong> {{ $surgery->notes ?? '-' }}</p>
+
+                                <!-- تفاصيل العملية -->
+                                @if($surgery->procedures->count() > 0)
+                                    <h6 class="mt-3">تفاصيل العملية:</h6>
+                                    <ul class="list-group mb-2">
+                                        @foreach($surgery->procedures as $proc)
+                                            <li class="list-group-item">
+                                                <strong>نوع الإجراء:</strong> {{ $proc->procedure_type }} <br>
+                                                <strong>الأدوات:</strong> {{ $proc->equipment ?? '-' }}
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @else
+                                    <p class="text-muted">لا توجد تفاصيل مسجلة لهذه العملية.</p>
+                                @endif
+
+                                <!-- زر فتح مودال إضافة التفاصيل -->
+                                @if(auth()->user()->hasRole('فني العمليات'))
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                                        data-bs-target="#addProcedureModal-{{ $surgery->id }}">
+                                        ➕ إضافة تفاصيل العملية
+                                    </button>
+                                @endif
+                            </div>
+
+                            <!-- Modal: إضافة تفاصيل العملية -->
+                            <div class="modal fade" id="addProcedureModal-{{ $surgery->id }}" tabindex="-1"
+                                aria-labelledby="addProcedureModalLabel-{{ $surgery->id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content rounded-4 shadow">
+                                        <div class="modal-header bg-primary text-white rounded-top-4">
+                                            <h5 class="modal-title" id="addProcedureModalLabel-{{ $surgery->id }}">
+                                                ➕ إضافة تفاصيل العملية
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                                        </div>
+                                        <form action="{{ route('surgery_procedures.store') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="surgery_id" value="{{ $surgery->id }}">
+
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">نوع الإجراء</label>
+                                                    <input type="text" name="procedure_type" class="form-control" required>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label">الأدوات المستخدمة</label>
+                                                    <textarea name="equipment" class="form-control" rows="3"></textarea>
+                                                </div>
+                                            </div>
+
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                                <button type="submit" class="btn btn-success">💾 حفظ التفاصيل</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <p class="text-muted mt-1">لا توجد عمليات لهذه الزيارة.</p>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Modal: إضافة عملية -->
+            <div class="modal fade" id="addSurgeryModal" tabindex="-1" aria-labelledby="addSurgeryModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content rounded-4 shadow">
+                        <div class="modal-header bg-danger text-white rounded-top-4">
+                            <h5 class="modal-title" id="addSurgeryModalLabel">⚕️ إضافة عملية جديدة</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                        </div>
+
+                        <form action="{{ route('surgeries.store') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="visit_id" value="{{ $visit->id }}">
+                            <input type="hidden" name="patient_id" value="{{ $visit->patient_id }}">
+                            <input type="hidden" name="doctor_id" value="{{ $visit->appointment->doctor_id ?? auth()->id() }}">
+
+                            <div class="modal-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">نوع العملية</label>
+                                        <input type="text" name="surgery_type" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">وقت البداية</label>
+                                        <input type="datetime-local" name="start_time" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">وقت النهاية</label>
+                                        <input type="datetime-local" name="end_time" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label">ملاحظات</label>
+                                        <textarea name="notes" class="form-control" rows="3"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                <button type="submit" class="btn btn-danger">💾 حفظ العملية</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if(auth()->user()->hasRole('ممرض الجناح') || auth()->user()->hasRole('الدكتور'))
+            <div class="card shadow-sm mb-4 rounded-4">
+                <div class="card-header bg-success text-white rounded-top-4 d-flex justify-content-between align-items-center">
+                    <span>💊 الوصفات الطبية</span>
+                    @if(auth()->user()->hasRole('الدكتور'))
+                        <button class="btn btn-sm btn-primary" onclick="confirmPrescription({{ $visit->id }})">
+                            طلب وصفة
+                        </button>
+                    @endif
+
+                    @if(auth()->user()->hasRole('ممرض الجناح'))
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPrescriptionModal">
+                            ➕ إضافة وصفة
+                        </button>
+                    @endif
+                </div>
+
+                <div class="card-body">
+                    @if($visit->prescriptions->count() > 0)
+                        <ul class="list-group list-group-flush">
+                            @foreach($visit->prescriptions as $prescription)
+                                <li class="list-group-item d-flex justify-content-between align-items-center mt-2">
+                                    <div>
+                                        <strong>{{ $prescription->medicine_name }}</strong>
+                                        <small class="text-muted d-block">
+                                            {{ $prescription->dosage }} - لمدة {{ $prescription->duration }}
+                                        </small>
+                                    </div>
+                                    <!-- زر عرض التفاصيل -->
+                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                        data-bs-target="#prescriptionDetailsModal{{ $prescription->id }}">
+                                        عرض التفاصيل
+                                    </button>
+                                </li>
+
+                                <!-- Modal: تفاصيل الوصفة -->
+                                <div class="modal fade" id="prescriptionDetailsModal{{ $prescription->id }}" tabindex="-1"
+                                    aria-labelledby="prescriptionDetailsLabel{{ $prescription->id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-md">
+                                        <div class="modal-content rounded-4 shadow">
+                                            <div class="modal-header bg-success text-white">
+                                                <h5 class="modal-title" id="prescriptionDetailsLabel{{ $prescription->id }}">
+                                                    تفاصيل الوصفة الطبية
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="إغلاق"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p><strong>💊 الدواء:</strong> {{ $prescription->medicine_name }}</p>
+                                                <p><strong>📦 الجرعة:</strong> {{ $prescription->dosage }}</p>
+                                                <p><strong>⏳ المدة:</strong> {{ $prescription->duration }}</p>
+                                                <p><strong>📝 ملاحظات:</strong> {{ $prescription->notes ?? '-' }}</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="text-muted mt-1">لا توجد وصفات طبية لهذه الزيارة.</p>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Modal: إضافة وصفة جديدة -->
+            @if(auth()->user()->hasRole('ممرض الجناح'))
+                <div class="modal fade" id="addPrescriptionModal" tabindex="-1" aria-labelledby="addPrescriptionLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-md">
+                        <div class="modal-content rounded-4 shadow">
+                            <div class="modal-header bg-success text-white">
+                                <h5 class="modal-title" id="addPrescriptionLabel">➕ إضافة وصفة طبية</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                            </div>
+                            <form action="{{ route('prescriptions.store') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="visit_id" value="{{ $visit->id }}">
+                                <input type="hidden" name="patient_id" value="{{ $visit->patient_id }}">
+
+                                <div class="modal-body">
+                                    <div class="mb-2">
+                                        <label class="form-label">اسم الدواء</label>
+                                        <input type="text" name="medicine_name" class="form-control" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">الجرعة</label>
+                                        <input type="text" name="dosage" class="form-control" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">المدة</label>
+                                        <input type="text" name="duration" class="form-control" required>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">ملاحظات</label>
+                                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                    <button type="submit" class="btn btn-success">💾 حفظ الوصفة</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endif
+
+    </div>
+    <script>
+        function confirmXray(visitId) {
+            Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: "هل تريد فعلاً طلب صورة أشعة لهذا المريض؟",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، اطلب الآن',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/visits/xray/" + visitId;
+                }
+            });
+        }
+        function confirmlabTests(visitId) {
+            Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: "هل تريد فعلاً تحليل مخبري لهذا المريض؟",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، اطلب الآن',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/visits/labTests/" + visitId;
+                }
+            });
+        }
+        function confirmSurgerys(visitId) {
+            Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: "هل تريد طلب عملية لهذا المريض؟",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، اطلب الآن',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/visits/surgeries/" + visitId;
+                }
+            });
+        }
+        function confirmPrescription(visitId) {
+            Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: "هل تريد طلب عملية لهذا المريض؟",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، اطلب الآن',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/visits/prescriptions/" + visitId;
+                }
+            });
+        }
+    </script>
+
+    <style>
+        .card-header {
+            font-size: 1.1rem;
+        }
+
+        .card-body p,
+        .card-body li {
+            font-size: 0.95rem;
+        }
+
+        img.card-img-top {
+            height: 200px;
+            object-fit: cover;
+        }
+    </style>
+@endsection
