@@ -58,6 +58,13 @@ Route::middleware('auth')->group(function () {
     Route::resource('products', ProductController::class);
 });
 
+Route::middleware(['auth'])->group(function () {
+    // طلبات الرعاية التمريضية
+    Route::get('nursing-requests', [\App\Http\Controllers\NursingCareRequestController::class, 'index'])->name('nursing_requests.index');
+    Route::post('nursing-requests/store', [\App\Http\Controllers\NursingCareRequestController::class, 'store'])->name('nursing_requests.store');
+    Route::post('nursing-requests/{id}/accept', [\App\Http\Controllers\NursingCareRequestController::class, 'accept'])->name('nursing_requests.accept');
+    Route::post('nursing-requests/{id}/complete', [\App\Http\Controllers\NursingCareRequestController::class, 'complete'])->name('nursing_requests.complete');
+});
 Route::middleware(['auth'])
     ->group(function () {
         Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
