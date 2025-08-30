@@ -15,6 +15,9 @@
         </div>
         <div class="mb-1 text-end">
             <a href="{{ route('dashboard') }}" class="btn btn-secondary mb-1">⬅️ العودة لسجل الزيارات</a>
+            @if(optional($visit->appointment)->status != 'ملغي' && (auth()->user()->hasRole('الدكتور') || auth()->user()->hasRole('المريض')))
+                <button class="btn btn-danger mb-1" data-bs-toggle="modal" data-bs-target="#cancelVisitModal">إلغاء الموعد</button>
+            @endif
         </div>
         @if(session('success'))
             <div class="alert alert-success p-2">{{ session('success') }}</div>
@@ -41,9 +44,9 @@
                             <h6 class="fw-bold text-success">🏥 القسم</h6>
                             <p class="mb-2">{{ $visit->department->name }}</p>
                             <h6 class="fw-bold text-danger">📝 التشخيص</h6>
-                            <p class="mb-2">{{ $visit->diagnosis ?? '-' }}</p>
+                            <p class="mb-2 diagnosis">{{ $visit->diagnosis ?? '-' }}</p>
                             <h6 class="fw-bold text-secondary">📌 الملاحظات</h6>
-                            <p class="mb-0">{{ $visit->notes ?? '-' }}</p>
+                            <p class="mb-0 notes">{{ $visit->notes ?? '-' }}</p>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -63,6 +66,22 @@
         </div>
 
         <style>
+            .card-body h6 {
+                font-size: 0.95rem;
+            }
+
+            .card-body p {
+                font-size: 0.9rem;
+            }
+        </style>
+
+        <style>
+            /* تحسين عرض حقول التشخيص والملاحظات */
+            .diagnosis, .notes {
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+
             .card-body h6 {
                 font-size: 0.95rem;
             }
@@ -144,6 +163,46 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">❌ إلغاء</button>
                                 <button type="submit" class="btn btn-success">💾 حفظ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
+        @if(auth()->user()->hasRole('الدكتور'))
+            <!-- بطاقة إرسال طلب رعاية تمريضية -->
+            <div class="card shadow-sm mb-3 rounded-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">🩺 إرسال طلب رعاية تمريضية</h5>
+                    <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#sendNursingRequestModal">
+                        ➕ إرسال للممرض
+                    </button>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">استخدم هذا النموذج لإرسال تعليمات للرعاية التمريضية للمريض المرتبط بهذه الزيارة.</p>
+                </div>
+            </div>
+
+            <!-- Modal إرسال طلب رعاية تمريضية -->
+            <div class="modal fade" id="sendNursingRequestModal" tabindex="-1" aria-labelledby="sendNursingRequestLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content rounded-4 shadow">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="sendNursingRequestLabel">إرسال طلب رعاية تمريضية</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                        </div>
+                        <form action="{{ route('nursing_requests.store') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="patient_id" value="{{ $visit->patient_id }}">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">رسالة إلى الممرض</label>
+                                    <textarea name="message" class="form-control" rows="4" required placeholder="أدخل الإجراءات أو الملاحظات للممرض..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                <button type="submit" class="btn btn-success">إرسال الطلب</button>
                             </div>
                         </form>
                     </div>
@@ -364,6 +423,26 @@
         @endif
 
         @if(auth()->user()->hasRole('ممرض الجناح') || auth()->user()->hasRole('الدكتور'))
+            <div class="card shadow-sm mb-3 rounded-4">
+                <div class="card-header bg-light rounded-top-4">
+                    <h5 class="mb-0">سجل الإجراءات التمريضية الأخيرة</h5>
+                </div>
+                <div class="card-body">
+                    @if(isset($nursingActions) && $nursingActions->count() > 0)
+                        <ul class="list-group list-group-flush">
+                            @foreach($nursingActions as $act)
+                                <li class="list-group-item">
+                                    <strong>{{ $act->nurse->first_name ?? $act->nurse->name ?? '-' }}</strong>
+                                    <div class="text-muted small">{{ $act->created_at->diffForHumans() }}</div>
+                                    <div class="mt-1">{{ $act->action }}</div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="text-muted">لا توجد إجراءات تمريضية مسجلة.</p>
+                    @endif
+                </div>
+            </div>
             <div class="card shadow-sm mb-4 rounded-4">
                 <div class="card-header bg-success text-white rounded-top-4 d-flex justify-content-between align-items-center">
                     <span>💊 الوصفات الطبية</span>
@@ -474,6 +553,31 @@
                 </div>
             @endif
         @endif
+
+        <!-- Modal إلغاء الموعد من صفحة الزيارة -->
+        <div class="modal fade" id="cancelVisitModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <form method="POST" action="{{ route('visits.cancel', $visit->id) }}">
+                    @csrf
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title">إلغاء الموعد</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">سبب الإلغاء (اختياري)</label>
+                                <textarea name="reason" class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                            <button type="submit" class="btn btn-danger">تأكيد الإلغاء</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
 
     </div>
     <script>

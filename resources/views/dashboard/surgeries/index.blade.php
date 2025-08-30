@@ -37,6 +37,15 @@
                                 عرض التفاصيل
                             </button>
 
+                            @if(auth()->user()->hasRole('فني العمليات') || auth()->user()->hasRole('Super Admin'))
+                                <a href="{{ route('surgeries.edit', $surgery->id) }}" class="btn btn-sm btn-warning">تعديل</a>
+                                <form action="{{ route('surgeries.destroy', $surgery->id) }}" method="POST" style="display:inline-block;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-sm btn-danger" onclick="return confirm('هل تريد حذف العملية؟')">حذف</button>
+                                </form>
+                            @endif
+
                             <!-- المودال -->
                             <div class="modal fade" id="procedureDetailsModal{{ $surgery->id }}" tabindex="-1"
                                 aria-labelledby="procedureDetailsLabel{{ $surgery->id }}" aria-hidden="true">

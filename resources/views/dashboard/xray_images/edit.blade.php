@@ -10,7 +10,7 @@
             </div>
         @endif
 
-        <form action="{{ route('xray_images.update', $xRayImage->id) }}" method="POST">
+    <form action="{{ route('xrays.update', $xRayImage->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -26,8 +26,9 @@
             </div>
 
             <div class="mb-3">
-                <label>رابط الصورة</label>
-                <input type="text" name="image_path" class="form-control" value="{{ $xRayImage->image_path }}">
+                <label>تحميل/رابط الصورة</label>
+                <input type="file" name="image_path" class="form-control">
+                <small class="form-text text-muted">الرابط الحالي: {{ $xRayImage->image_path }}</small>
             </div>
 
             <div class="mb-3">

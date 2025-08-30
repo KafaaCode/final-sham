@@ -55,8 +55,15 @@ class NursingCareRequestController extends Controller
         $careRequest->update([
             'status' => 'done',
         ]);
-        // هنا يمكن ربط الإجراء بملف المريض أو جدول الإجراءات
-        // مثال: PatientProcedure::create([...])
+        // سجل الإجراء في جدول NursingAction لربطه بملف المريض
+        \App\Models\NursingAction::create([
+            'nursing_care_request_id' => $careRequest->id,
+            'nurse_id' => auth()->id(),
+            'patient_id' => $careRequest->patient_id,
+            'action' => $request->notes,
+        ]);
+
+        // يمكن توسيع هنا لإرسال إشعار للمريض/طبيب عبر Notifications
         return redirect()->back()->with('success', 'تم تسجيل الإجراء بنجاح.');
     }
 }

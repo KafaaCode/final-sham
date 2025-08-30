@@ -273,6 +273,12 @@
                             <span class="menu-title text-truncate">كل الوصفات الطبية</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="d-flex align-items-center" href="{{ route('nursing_requests.index') }}">
+                            <i class="fa-solid fa-hand-holding-medical"></i>
+                            <span class="menu-title text-truncate">طلبات الرعاية التمريضية</span>
+                        </a>
+                    </li>
                 @endif
                 @if (auth()->user()->hasRole('فني المخبر'))
                     <li class="nav-item">

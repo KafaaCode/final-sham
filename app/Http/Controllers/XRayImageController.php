@@ -60,20 +60,26 @@ class XRayImageController extends Controller
         $xRayImage = XRayImage::findOrFail($id);
         $request->validate([
             'patient_id' => 'required|exists:users,id',
-            'image_path' => 'required|string|max:255',
+            'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'technical_report' => 'nullable|string',
             'technician_name' => 'required|string|max:255',
         ]);
 
-        $xRayImage->update($request->all());
+        $data = $request->only(['patient_id', 'technical_report', 'technician_name']);
+        if ($request->hasFile('image_path')) {
+            $path = $request->file('image_path')->store('xrays', 'public');
+            $data['image_path'] = 'storage/' . $path;
+        }
 
-        return redirect()->route('xray_images.index')->with('success', 'تم تعديل صورة الأشعة بنجاح');
+        $xRayImage->update($data);
+
+    return redirect()->route('xrays.index')->with('success', 'تم تعديل صورة الأشعة بنجاح');
     }
 
     public function destroy($id)
     {
         $xRayImage = XRayImage::findOrFail($id);
         $xRayImage->delete();
-        return redirect()->route('xray_images.index')->with('success', 'تم حذف صورة الأشعة بنجاح');
+    return redirect()->route('xrays.index')->with('success', 'تم حذف صورة الأشعة بنجاح');
     }
 }

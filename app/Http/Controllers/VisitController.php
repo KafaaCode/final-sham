@@ -152,7 +152,12 @@ class VisitController extends Controller
     {
         $visit = Visit::findOrFail($id);
         $visit->load(['appointment.doctor', 'department', 'xRayImages', 'labTests', 'prescriptions', 'surgeries']);
-        return view('dashboard.visits.show', compact('visit'));
+        $nursingActions = \App\Models\NursingAction::where('patient_id', $visit->patient_id)
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return view('dashboard.visits.show', compact('visit', 'nursingActions'));
     }
 
 
@@ -187,6 +192,32 @@ class VisitController extends Controller
 
         return redirect()->route('visits.index')
             ->with('success', 'تم حذف الزيارة بنجاح');
+    }
+
+    // إلغاء الزيارة/الموعد من قبل المريض أو الطبيب (مع توثيق السبب)
+    public function cancel(Request $request, $id)
+    {
+        $request->validate([
+            'reason' => 'nullable|string',
+        ]);
+
+        $visit = Visit::findOrFail($id);
+
+        if (!$visit->appointment_id) {
+            return redirect()->back()->with('error', 'لا يوجد موعد مرتبط بهذه الزيارة');
+        }
+
+        $appointment = $visit->appointment;
+        $appointment->status = 'ملغي';
+        $appointment->save();
+
+        \App\Models\AppointmentCancellation::create([
+            'appointment_id' => $appointment->id,
+            'cancelled_by' => auth()->id(),
+            'reason' => $request->reason,
+        ]);
+
+        return redirect()->back()->with('success', 'تم إلغاء الموعد بنجاح');
     }
 
     public function myVisits()

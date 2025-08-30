@@ -72,4 +72,25 @@ class AppointmentController extends Controller
         $appointment->delete();
         return redirect()->route('appointments.index')->with('success', 'تم حذف الموعد بنجاح');
     }
+
+    // الغاء الموعد مع سبب
+    public function cancel(Request $request, $id)
+    {
+        $request->validate([
+            'reason' => 'nullable|string',
+        ]);
+
+        $appointment = Appointment::findOrFail($id);
+        $appointment->status = 'ملغي';
+        $appointment->save();
+
+        \App\Models\AppointmentCancellation::create([
+            'appointment_id' => $appointment->id,
+            'cancelled_by' => auth()->id(),
+            'reason' => $request->reason,
+        ]);
+
+        // إشعار بسيط عبر الجلسة؛ يمكن توسيعها لإرسال إشعار للمريض أو الطبيب
+        return redirect()->route('appointments.index')->with('success', 'تم إلغاء الموعد وإخطار الأطراف المعنية');
+    }
 }

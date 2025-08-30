@@ -10,7 +10,7 @@
             </div>
         @endif
 
-        <form action="{{ route('xray_images.store') }}" method="POST">
+    <form action="{{ route('xrays.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="mb-3">
                 <label>المريض</label>
@@ -23,8 +23,8 @@
             </div>
 
             <div class="mb-3">
-                <label>رابط الصورة</label>
-                <input type="text" name="image_path" class="form-control">
+                <label>تحميل الصورة</label>
+                <input type="file" name="image_path" class="form-control">
             </div>
 
             <div class="mb-3">

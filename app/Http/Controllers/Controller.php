@@ -118,8 +118,11 @@ class Controller extends BaseController
         $totalPatients = $adminVisits->pluck('patient_id')->unique()->count();
         $totalLabTests = $adminVisits->sum(fn($v) => $v->labTests->count());
         $totalSurgeries = $adminVisits->sum(fn($v) => $v->surgeries->count());
+        // عدد صور الأشعة الإجمالي
+        $totalXrays = \App\Models\XRayImage::count();
         return view('dashboard', compact(
             'totalPatients',
+            'totalXrays',
             'departments',
             'appointments',
             'todayPatients',

@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->foreignId('department_id')->constrained()->cascadeOnDelete();
             $table->dateTime('appointment_start_time');
             $table->dateTime('appointment_end_time');
-            $table->enum('status', ['محجوز', 'متوفر']);
+            $table->enum('status', ['محجوز', 'متوفر','ملغي'])->default('متوفر');
             $table->timestamps();
         });
     }

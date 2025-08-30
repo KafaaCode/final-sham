@@ -89,6 +89,7 @@ Route::middleware(['auth'])
         Route::get('appointments/{id}/edit', [AppointmentController::class, 'edit'])->name('appointments.edit');
         Route::put('appointments/{id}/update', [AppointmentController::class, 'update'])->name('appointments.update');
         Route::delete('appointments/{id}/delete', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+    Route::post('appointments/{id}/cancel', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
 
         Route::get('reservations', [ReservationController::class, 'index'])->name('reservations.index');
         Route::get('reservations/create', [ReservationController::class, 'create'])->name('reservations.create');
@@ -99,7 +100,7 @@ Route::middleware(['auth'])
         Route::delete('reservations/{id}/delete', [ReservationController::class, 'destroy'])->name('reservations.destroy');
 
         Route::get('xrays', [XRayImageController::class, 'index'])->name('xrays.index');
-        Route::get('xrays/create', [XRayImageController::class, 'create'])->name('xray_images.create');
+    Route::get('xrays/create', [XRayImageController::class, 'create'])->name('xrays.create');
         Route::post('xrays/store', [XRayImageController::class, 'store'])->name('xrays.store');
         Route::get('xrays/{id}', [XRayImageController::class, 'show'])->name('xrays.show');
         Route::get('xrays/{id}/edit', [XRayImageController::class, 'edit'])->name('xrays.edit');
@@ -164,6 +165,7 @@ Route::middleware(['auth'])
 
 
         Route::get('/visits/{visit}/export-pdf', [VisitController::class, 'exportVisitPdf'])->name('visits.exportPDF');
+    Route::post('/visits/{id}/cancel', [VisitController::class, 'cancel'])->name('visits.cancel');
 
     });
 

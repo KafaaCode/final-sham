@@ -240,6 +240,13 @@
                 </div>
 
                 <div class="col-md-3">
+                    <div class="card shadow-sm border-start border-4 border-info rounded-4 p-3">
+                        <h5 class="fw-bold">عدد صور الأشعة</h5>
+                        <p class="display-6 fw-bold text-info">{{ $totalXrays ?? 0 }}</p>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
                     <div class="card shadow-sm border-start border-4 border-danger rounded-4 p-3">
                         <h5 class="fw-bold">عدد العمليات</h5>
                         <p class="display-6 fw-bold text-danger">{{ $totalSurgeries }}</p>
