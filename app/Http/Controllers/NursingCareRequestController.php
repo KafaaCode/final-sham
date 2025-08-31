@@ -30,7 +30,11 @@ class NursingCareRequestController extends Controller
     // عرض الطلبات للممرض
     public function index()
     {
-        $requests = NursingCareRequest::whereNull('nurse_id')->orWhere('nurse_id', Auth::id())->orderByDesc('created_at')->get();
+        $requests = NursingCareRequest::with(['patient','doctor','actions'])
+            ->whereNull('nurse_id')
+            ->orWhere('nurse_id', Auth::id())
+            ->orderByDesc('created_at')->get();
+
         return view('dashboard.nursing_requests.index', compact('requests'));
     }
 

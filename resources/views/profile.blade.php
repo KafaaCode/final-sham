@@ -50,11 +50,11 @@
                                     value="{{ old('phone', Auth::user()->phone) }}">
                             </div>
 
-                            <div class="mb-1">
+                            <!-- <div class="mb-1">
                                 <label class="form-label">الرقم الوطني</label>
                                 <input type="text" name="national_id" class="form-control"
                                     value="{{ old('national_id', Auth::user()->national_id) }}">
-                            </div>
+                            </div> -->
 
                             <div class="mb-1">
                                 <label class="form-label">العنوان</label>

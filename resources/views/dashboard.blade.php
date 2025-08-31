@@ -322,14 +322,15 @@
                         <div class="col-md-4">
                             <div
                                 class="card shadow-sm rounded-4 h-80 visit-card
-                                                                                                                                                                                                                                                                                        @if($visit->appointment->appointment_start_time < now()) border-secondary
-                                                                                                                                                                                                                                                                                        @else border-primary @endif">
+                                    @if($visit->appointment->appointment_start_time < now()) border-secondary
+                                    @else border-primary 
+                                    @endif">
 
                                 <div
                                     class="card-header text-white
-                                                                                                                                                                                                                                                                                            @if($visit->appointment->appointment_start_time < now()) bg-secondary
-                                                                                                                                                                                                                                                                                            @else bg-primary @endif
-                                                                                                                                                                                                                                                                                            rounded-top-4 text-center">
+                                        @if($visit->appointment->appointment_start_time < now()) bg-secondary
+                                        @else bg-primary @endif
+                                            rounded-top-4 text-center">
                                     {{ $visit->appointment->appointment_start_time < now() ? 'منتهي' : 'نشط' }}
                                 </div>
 

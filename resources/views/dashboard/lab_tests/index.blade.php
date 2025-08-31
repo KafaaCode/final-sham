@@ -3,7 +3,7 @@
 @section('content')
     <div class="container">
         <h2>تحاليل المختبر</h2>
-        <a href="{{ route('lab_tests.create') }}" class="btn btn-primary mb-3">إضافة تحليل جديد</a>
+        <!-- <a href="{{ route('lab_tests.create') }}" class="btn btn-primary mb-3">إضافة تحليل جديد</a> -->
 
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>

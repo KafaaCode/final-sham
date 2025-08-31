@@ -98,7 +98,7 @@
             </div>
 
             <!-- button for end of visit  butons in line -->
-            @if($visit->status != 5)
+            @if($visit->status != 5 && auth()->user()->hasRole('الدكتور'))
             <div class="text-center mb-1  d-flex justify-content-center gap-2">
                 <form action="{{ route('visits.end', $visit->id) }}" method="POST">
                     @csrf
@@ -266,6 +266,7 @@
                             @csrf
                             <input type="hidden" name="visit_id" value="{{ $visit->id }}">
                             <div class="modal-body">
+                                <input type="hidden" name="patient_id" value="{{ $visit->patient_id }}">
                                 <div class="mb-3">
                                     <label class="form-label">📷 اختر صورة الأشعة</label>
                                     <input type="file" name="image_path" class="form-control" required>
@@ -274,7 +275,7 @@
                                     <label class="form-label">📝 التقرير الفني</label>
                                     <textarea name="technical_report" class="form-control" rows="3"></textarea>
                                 </div>
-                                <div class="mb-3">
+                                <div class="mb-3" style="display: none;">
                                     <label class="form-label">👨‍🔧 اسم الفني</label>
                                     <input type="text" name="technician_name" class="form-control"
                                         value="{{ auth()->user()->name }}">
@@ -799,8 +800,8 @@
                 <div class="card-header bg-success text-white rounded-top-4 d-flex justify-content-between align-items-center">
                     <span>💊 الوصفات الطبية</span>
                     @if(auth()->user()->hasRole('الدكتور') && $visit->status != 5)
-                        <button class="btn btn-sm btn-primary" onclick="confirmPrescription({{ $visit->id }})">
-                            طلب وصفة
+                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPrescriptionModal">
+                            ➕ إضافة وصفة
                         </button>
                     @endif
 
@@ -862,7 +863,7 @@
             </div>
 
             <!-- Modal: إضافة وصفة جديدة -->
-            @if(auth()->user()->hasRole('ممرض الجناح'))
+            @if(auth()->user()->hasRole('الدكتور'))
                 <div class="modal fade" id="addPrescriptionModal" tabindex="-1" aria-labelledby="addPrescriptionLabel"
                     aria-hidden="true">
                     <div class="modal-dialog modal-md">
@@ -1024,7 +1025,7 @@
         function confirmPrescription(visitId) {
             Swal.fire({
                 title: 'هل أنت متأكد؟',
-                text: "هل تريد طلب وصفة طبية لهذا المريض؟",
+                text: "هل تريد انشاء وصفة طبية لهذا المريض؟",
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'نعم، اطلب الآن',

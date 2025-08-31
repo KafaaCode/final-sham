@@ -24,6 +24,7 @@ class XRayImageController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'patient_id' => 'required|exists:users,id',
             'visit_id' => 'required|exists:visits,id',
             'image_path' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'technical_report' => 'nullable|string',
@@ -34,10 +35,10 @@ class XRayImageController extends Controller
 
         XRayImage::create([
             'visit_id' => $request->visit_id,
-            'patient_id' => Visit::find($request->visit_id)->patient_id,
+            'patient_id' => $request->patient_id,
             'image_path' => 'storage/' . $path,
             'technical_report' => $request->technical_report,
-            'technician_name' => $request->technician_name,
+            'technician_name' => auth()->user()->name,
         ]);
 
         $visit = Visit::find($request->visit_id);

@@ -31,4 +31,11 @@ class NursingCareRequest extends Model
     {
         return $this->belongsTo(User::class, 'patient_id');
     }
+
+    // في NursingCareRequest.php
+    public function actions()
+    {
+        return $this->hasMany(NursingAction::class, 'nursing_care_request_id');
+    }
+
 }

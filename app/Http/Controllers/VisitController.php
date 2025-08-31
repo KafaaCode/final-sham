@@ -73,7 +73,7 @@ class VisitController extends Controller
         $visit = Visit::findOrFail($id);
         if ($visit->status == 4) {
             return redirect()->back()
-                ->with('error', 'تم ارسال طلب وصفة من قبل انتظر الرد');
+                ->with('error', 'تم ارسال انشاء وصفة من قبل انتظر الرد');
         }
         $visit->status = 4;
         $visit->save();

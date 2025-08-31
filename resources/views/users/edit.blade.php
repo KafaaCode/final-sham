@@ -68,8 +68,8 @@
                         class="form-control">
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">نوع الوظيفة</label>
-                    <input type="text" name="job_type" value="{{ old('job_type', $user->job_type) }}" class="form-control">
+                    <label class="form-label">مكان الولادة</label>
+                    <input type="text" name="place_of_birth" value="{{ old('place_of_birth', $user->place_of_birth) }}" class="form-control">
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">البريد الإلكتروني</label>

@@ -31,6 +31,10 @@ class AppointmentController extends Controller
             'appointment_end_time' => 'required',
         ]);
 
+        // check if start time is in last
+        if (strtotime($request->appointment_start_time) < time()) {
+            return back()->withErrors(['appointment_start_time' => 'وقت بداية الموعد يجب أن يكون في المستقبل'])->withInput();
+        }
         Appointment::create([
             'doctor_id' => $request->doctor_id,
             'department_id' => $request->department_id,

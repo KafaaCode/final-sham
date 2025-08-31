@@ -72,7 +72,7 @@ class UserController extends Controller
             'birth_date' => 'nullable|date',
             'current_address' => 'nullable|string|max:255',
             'national_id' => 'nullable|string|max:50|unique:users,national_id,' . $id,
-            'job_type' => 'nullable|string|max:255',
+            'place_of_birth' => 'nullable|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
             'password' => 'nullable|confirmed|min:6',
             'roles' => 'required|array',

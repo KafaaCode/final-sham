@@ -18,6 +18,7 @@ use App\Http\Controllers\LabTestController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\SurgeryController;
 use App\Http\Controllers\SurgeryProcedureController;
+use App\Http\Controllers\NursingRequestController;
 
 
 /*
@@ -64,6 +65,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('nursing-requests/store', [\App\Http\Controllers\NursingCareRequestController::class, 'store'])->name('nursing_requests.store');
     Route::post('nursing-requests/{id}/accept', [\App\Http\Controllers\NursingCareRequestController::class, 'accept'])->name('nursing_requests.accept');
     Route::post('nursing-requests/{id}/complete', [\App\Http\Controllers\NursingCareRequestController::class, 'complete'])->name('nursing_requests.complete');
+    Route::get('nursing_requests/{id}', [NursingRequestController::class, 'show']);
+    Route::delete('nursing_requests/actions/{id}', [NursingRequestController::class, 'destroyAction']);
+    Route::get('nursing_requests/{id}/actions', [NursingRequestController::class, 'getActions']);
+    Route::post('nursing_requests/actions/store', [NursingRequestController::class, 'storeAction'])->name('nursing_requests.actions.store');
+    Route::put('nursing_requests/actions/{id}', [NursingRequestController::class, 'updateAction']);
+
 });
 Route::middleware(['auth'])
     ->group(function () {

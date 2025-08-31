@@ -30,7 +30,7 @@ class User extends Authenticatable
         'birth_date',
         'current_address',
         'national_id',
-        'job_type',
+        'place_of_birth',
         'email',
     ];
 
@@ -72,6 +72,11 @@ class User extends Authenticatable
     public function visits()
     {
         return $this->hasMany(Visit::class, 'patient_id');
+    }
+
+    public function getNameAttribute()
+    {
+        return "{$this->first_name} {$this->last_name}";
     }
 
     /**

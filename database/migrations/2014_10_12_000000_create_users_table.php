@@ -21,7 +21,7 @@ return new class extends Migration {
             $table->date('birth_date')->nullable();
             $table->string('current_address')->nullable();
             $table->string('national_id')->unique()->nullable();
-            $table->string('job_type')->nullable()->nullable();
+            $table->string('place_of_birth')->nullable();
             $table->string('email')->unique()->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
