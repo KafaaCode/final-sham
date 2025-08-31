@@ -157,7 +157,30 @@ class VisitController extends Controller
             ->take(10)
             ->get();
 
-        return view('dashboard.visits.show', compact('visit', 'nursingActions'));
+        // جلب رسائل الأشعة
+        $xrayMessages = \App\Models\XrayMessage::where('visit_id', $visit->id)
+            ->with(['doctor'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // جلب رسائل المخبر
+        $labMessages = \App\Models\LabMessage::where('visit_id', $visit->id)
+            ->with(['doctor'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // جلب طلبات الرعاية التمريضية
+        $nursingRequests = \App\Models\NursingCareRequest::where('patient_id', $visit->patient_id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('dashboard.visits.show', compact(
+            'visit', 
+            'nursingActions', 
+            'xrayMessages', 
+            'labMessages', 
+            'nursingRequests'
+        ));
     }
 
 

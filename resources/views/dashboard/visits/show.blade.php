@@ -25,6 +25,39 @@
         @if(session('error'))
             <div class="alert alert-danger p-2">{{ session('error') }}</div>
         @endif
+        <!-- إحصائيات الرسائل -->
+        @if(auth()->user()->hasRole('الدكتور'))
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="card bg-info text-white text-center rounded-4 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="mb-1">📨 رسائل الأشعة</h6>
+                            <h4 class="mb-0">{{ isset($xrayMessages) ? $xrayMessages->count() : 0 }}</h4>
+                            <small>رسالة مرسلة</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-warning text-dark text-center rounded-4 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="mb-1">🧪 رسائل المخبر</h6>
+                            <h4 class="mb-0">{{ isset($labMessages) ? $labMessages->count() : 0 }}</h4>
+                            <small>رسالة مرسلة</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white text-center rounded-4 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="mb-1">🩺 رسائل التمريض</h6>
+                            <h4 class="mb-0">{{ isset($nursingRequests) ? $nursingRequests->count() : 0 }}</h4>
+                            <small>رسالة مرسلة</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <div class="card shadow-sm mb-4 rounded-4">
             <div class="card-header bg-primary rounded-top-4 text-center">
                 <h5 class="text-white mb-0 fw-bold">معلومات الزيارة</h5>
@@ -92,6 +125,51 @@
         </style>
 
         @if(auth()->user()->hasRole('فني الأشعة') || auth()->user()->hasRole('الدكتور'))
+            <!-- قسم عرض الرسائل المستلمة لفني الأشعة -->
+            @if(auth()->user()->hasRole('فني الأشعة'))
+                <div class="card shadow-sm mb-3 rounded-4">
+                    <div class="card-header bg-info text-white rounded-top-4">
+                        <h5 class="mb-0">📨 الرسائل المستلمة من الأطباء</h5>
+                    </div>
+                    <div class="card-body">
+                        @if(isset($xrayMessages) && $xrayMessages->count() > 0)
+                            <div class="list-group">
+                                @foreach($xrayMessages as $msg)
+                                    <div class="list-group-item border-info">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="mb-1 text-info">{{ $msg->examination_type }}</h6>
+                                            <span class="badge bg-{{ $msg->priority == 'طارئة' ? 'danger' : ($msg->priority == 'عاجلة' ? 'warning' : 'secondary') }}">
+                                                {{ $msg->priority ?? 'عادية' }}
+                                            </span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>👨‍⚕️ الطبيب:</strong> {{ $msg->doctor->name ?? 'غير محدد' }}
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>📋 التفاصيل:</strong> {{ $msg->examination_details ?? '-' }}
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>💊 معلومات طبية:</strong> {{ $msg->medical_info ?? '-' }}
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>📝 رسالة:</strong> {{ $msg->message ?? '-' }}
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">{{ $msg->created_at->format('Y-m-d H:i') }}</small>
+                                            <button class="btn btn-sm btn-success" onclick="markAsCompleted({{ $msg->id }}, 'xray')">
+                                                ✅ تم الإنجاز
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-muted">لا توجد رسائل مستلمة من الأطباء.</p>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             <div class="card shadow-sm mb-1 rounded-4">
                 <div class="card-header bg-info rounded-top-4 d-flex justify-content-between align-items-center">
                     <h4 class="text-white">🖼️ صور الأشعة</h4>
@@ -209,7 +287,275 @@
                 </div>
             </div>
         @endif
+
+        @if(auth()->user()->hasRole('الدكتور'))
+            <!-- بطاقة إرسال رسالة لفني الأشعة -->
+            <div class="card shadow-sm mb-3 rounded-4">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">🖼️ إرسال رسالة لفني الأشعة</h5>
+                    <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#sendXrayMessageModal">
+                        ➕ إرسال للفني
+                    </button>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">استخدم هذا النموذج لإرسال تعليمات وتفاصيل نوع الفحص المطلوب لفني الأشعة.</p>
+                    
+                    <!-- عرض الرسائل المرسلة لفني الأشعة -->
+                    @if(isset($xrayMessages) && $xrayMessages->count() > 0)
+                        <div class="mt-3">
+                            <h6 class="fw-bold text-info">📨 الرسائل المرسلة:</h6>
+                            <div class="list-group">
+                                @foreach($xrayMessages as $msg)
+                                    <div class="list-group-item border-info">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">{{ $msg->examination_type }}</h6>
+                                                <p class="mb-1"><strong>التفاصيل:</strong> {{ $msg->examination_details ?? '-' }}</p>
+                                                <p class="mb-1"><strong>الرسالة:</strong> {{ $msg->message ?? '-' }}</p>
+                                                <small class="text-muted">{{ $msg->created_at->format('Y-m-d H:i') }}</small>
+                                            </div>
+                                            <span class="badge bg-info">{{ $msg->status ?? 'جديد' }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <p class="text-muted mt-2">لا توجد رسائل مرسلة لفني الأشعة.</p>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Modal إرسال رسالة لفني الأشعة -->
+            <div class="modal fade" id="sendXrayMessageModal" tabindex="-1" aria-labelledby="sendXrayMessageLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content rounded-4 shadow">
+                        <div class="modal-header bg-info text-white">
+                            <h5 class="modal-title" id="sendXrayMessageLabel">إرسال رسالة لفني الأشعة</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                        </div>
+                        <form action="{{ route('xray_messages.store') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="patient_id" value="{{ $visit->patient_id }}">
+                            <input type="hidden" name="visit_id" value="{{ $visit->id }}">
+                            <div class="modal-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">🔍 نوع الفحص المطلوب</label>
+                                        <select name="examination_type" class="form-control" required>
+                                            <option value="">اختر نوع الفحص</option>
+                                            <optgroup label="أشعة سينية">
+                                                <option value="أشعة سينية للصدر">أشعة سينية للصدر</option>
+                                                <option value="أشعة سينية للعمود الفقري">أشعة سينية للعمود الفقري</option>
+                                                <option value="أشعة سينية للأطراف العلوية">أشعة سينية للأطراف العلوية</option>
+                                                <option value="أشعة سينية للأطراف السفلية">أشعة سينية للأطراف السفلية</option>
+                                                <option value="أشعة سينية للجمجمة">أشعة سينية للجمجمة</option>
+                                                <option value="أشعة سينية للبطن">أشعة سينية للبطن</option>
+                                            </optgroup>
+                                            <optgroup label="أشعة متقدمة">
+                                                <option value="أشعة مقطعية للصدر">أشعة مقطعية للصدر</option>
+                                                <option value="أشعة مقطعية للبطن">أشعة مقطعية للبطن</option>
+                                                <option value="أشعة مقطعية للدماغ">أشعة مقطعية للدماغ</option>
+                                                <option value="رنين مغناطيسي للدماغ">رنين مغناطيسي للدماغ</option>
+                                                <option value="رنين مغناطيسي للعمود الفقري">رنين مغناطيسي للعمود الفقري</option>
+                                                <option value="رنين مغناطيسي للمفاصل">رنين مغناطيسي للمفاصل</option>
+                                            </optgroup>
+                                            <optgroup label="أشعة بالموجات">
+                                                <option value="أشعة بالموجات فوق الصوتية للبطن">أشعة بالموجات فوق الصوتية للبطن</option>
+                                                <option value="أشعة بالموجات فوق الصوتية للقلب">أشعة بالموجات فوق الصوتية للقلب</option>
+                                                <option value="أشعة بالموجات فوق الصوتية للحوض">أشعة بالموجات فوق الصوتية للحوض</option>
+                                            </optgroup>
+                                            <option value="أخرى">أخرى</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">⚡ أولوية الفحص</label>
+                                        <select name="priority" class="form-control">
+                                            <option value="عادية">عادية</option>
+                                            <option value="عاجلة">عاجلة</option>
+                                            <option value="طارئة">طارئة</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">📋 تفاصيل الفحص</label>
+                                    <textarea name="examination_details" class="form-control" rows="3" placeholder="أدخل تفاصيل الفحص المطلوب، المنطقة المحددة، السبب..."></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">💊 معلومات المريض الطبية</label>
+                                    <textarea name="medical_info" class="form-control" rows="2" placeholder="أي معلومات طبية مهمة للمريض (حساسية، أمراض مزمنة...)" ></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">📝 رسالة إضافية للفني</label>
+                                    <textarea name="message" class="form-control" rows="3" placeholder="أدخل أي تعليمات إضافية أو ملاحظات خاصة للفني..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                <button type="submit" class="btn btn-info">إرسال الرسالة</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- بطاقة إرسال رسالة لفني المخبر -->
+            <div class="card shadow-sm mb-3 rounded-4">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">🧪 إرسال رسالة لفني المخبر</h5>
+                    <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#sendLabMessageModal">
+                        ➕ إرسال للفني
+                    </button>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">استخدم هذا النموذج لإرسال تعليمات وتفاصيل نوع التحليل المطلوب لفني المخبر.</p>
+                    
+                    <!-- عرض الرسائل المرسلة لفني المخبر -->
+                    @if(isset($labMessages) && $labMessages->count() > 0)
+                        <div class="mt-3">
+                            <h6 class="fw-bold text-warning">📨 الرسائل المرسلة:</h6>
+                            <div class="list-group">
+                                @foreach($labMessages as $msg)
+                                    <div class="list-group-item border-warning">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">{{ $msg->test_type }}</h6>
+                                                <p class="mb-1"><strong>التفاصيل:</strong> {{ $msg->test_details ?? '-' }}</p>
+                                                <p class="mb-1"><strong>الرسالة:</strong> {{ $msg->message ?? '-' }}</p>
+                                                <small class="text-muted">{{ $msg->created_at->format('Y-m-d H:i') }}</small>
+                                            </div>
+                                            <span class="badge bg-warning text-dark">{{ $msg->status ?? 'جديد' }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <p class="text-muted mt-2">لا توجد رسائل مرسلة لفني المخبر.</p>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Modal إرسال رسالة لفني المخبر -->
+            <div class="modal fade" id="sendLabMessageModal" tabindex="-1" aria-labelledby="sendLabMessageLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content rounded-4 shadow">
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title" id="sendLabMessageLabel">إرسال رسالة لفني المخبر</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                        </div>
+                        <form action="{{ route('lab_messages.store') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="patient_id" value="{{ $visit->patient_id }}">
+                            <input type="hidden" name="visit_id" value="{{ $visit->id }}">
+                            <div class="modal-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">🧪 نوع التحليل المطلوب</label>
+                                        <select name="test_type" class="form-control" required>
+                                            <option value="">اختر نوع التحليل</option>
+                                            <optgroup label="تحاليل الدم الأساسية">
+                                                <option value="تحليل دم شامل (CBC)">تحليل دم شامل (CBC)</option>
+                                                <option value="تحليل كيمياء الدم">تحليل كيمياء الدم</option>
+                                                <option value="تحليل سكر الدم">تحليل سكر الدم</option>
+                                                <option value="تحليل وظائف الكبد">تحليل وظائف الكبد</option>
+                                                <option value="تحليل وظائف الكلى">تحليل وظائف الكلى</option>
+                                                <option value="تحليل الدهون">تحليل الدهون</option>
+                                            </optgroup>
+                                            <optgroup label="تحاليل البول والبراز">
+                                                <option value="تحليل بول شامل">تحليل بول شامل</option>
+                                                <option value="تحليل براز">تحليل براز</option>
+                                                <option value="تحليل بول 24 ساعة">تحليل بول 24 ساعة</option>
+                                            </optgroup>
+                                            <optgroup label="تحاليل متخصصة">
+                                                <option value="تحليل هرمونات الغدة الدرقية">تحليل هرمونات الغدة الدرقية</option>
+                                                <option value="تحليل هرمونات الجنس">تحليل هرمونات الجنس</option>
+                                                <option value="تحليل هرمونات النمو">تحليل هرمونات النمو</option>
+                                                <option value="تحليل مناعي">تحليل مناعي</option>
+                                                <option value="مزرعة بكتيرية">مزرعة بكتيرية</option>
+                                                <option value="تحليل حساسية">تحليل حساسية</option>
+                                            </optgroup>
+                                            <option value="أخرى">أخرى</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">⚡ أولوية التحليل</label>
+                                        <select name="priority" class="form-control">
+                                            <option value="عادية">عادية</option>
+                                            <option value="عاجلة">عاجلة</option>
+                                            <option value="طارئة">طارئة</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">📋 تفاصيل التحليل</label>
+                                    <textarea name="test_details" class="form-control" rows="3" placeholder="أدخل تفاصيل التحليل المطلوب، القيم المطلوبة، السبب..."></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">💊 معلومات المريض الطبية</label>
+                                    <textarea name="medical_info" class="form-control" rows="2" placeholder="أي معلومات طبية مهمة للمريض (حساسية، أمراض مزمنة، أدوية يتناولها...)" ></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">📝 رسالة إضافية للفني</label>
+                                    <textarea name="message" class="form-control" rows="3" placeholder="أدخل أي تعليمات إضافية أو ملاحظات خاصة للفني..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                <button type="submit" class="btn btn-warning">إرسال الرسالة</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @if(auth()->user()->hasRole('فني المخبر') || auth()->user()->hasRole('الدكتور'))
+            <!-- قسم عرض الرسائل المستلمة لفني المخبر -->
+            @if(auth()->user()->hasRole('فني المخبر'))
+                <div class="card shadow-sm mb-3 rounded-4">
+                    <div class="card-header bg-warning text-dark rounded-top-4">
+                        <h5 class="mb-0">📨 الرسائل المستلمة من الأطباء</h5>
+                    </div>
+                    <div class="card-body">
+                        @if(isset($labMessages) && $labMessages->count() > 0)
+                            <div class="list-group">
+                                @foreach($labMessages as $msg)
+                                    <div class="list-group-item border-warning">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="mb-1 text-warning">{{ $msg->test_type }}</h6>
+                                            <span class="badge bg-{{ $msg->priority == 'طارئة' ? 'danger' : ($msg->priority == 'عاجلة' ? 'warning' : 'secondary') }}">
+                                                {{ $msg->priority ?? 'عادية' }}
+                                            </span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>👨‍⚕️ الطبيب:</strong> {{ $msg->doctor->name ?? 'غير محدد' }}
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>📋 التفاصيل:</strong> {{ $msg->test_details ?? '-' }}
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>💊 معلومات طبية:</strong> {{ $msg->medical_info ?? '-' }}
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>📝 رسالة:</strong> {{ $msg->message ?? '-' }}
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">{{ $msg->created_at->format('Y-m-d H:i') }}</small>
+                                            <button class="btn btn-sm btn-success" onclick="markAsCompleted({{ $msg->id }}, 'lab')">
+                                                ✅ تم الإنجاز
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-muted">لا توجد رسائل مستلمة من الأطباء.</p>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             <div class="card shadow-sm mb-1 rounded-4">
                 <div class="card-header bg-warning text-dark rounded-top-4">
                     🧪 التحاليل المخبرية
@@ -554,6 +900,71 @@
             @endif
         @endif
 
+        <!-- قسم عرض الرسائل المكتملة والمعلقة -->
+        @if(auth()->user()->hasRole('الدكتور'))
+            <div class="card shadow-sm mb-3 rounded-4">
+                <div class="card-header bg-secondary text-white rounded-top-4">
+                    <h5 class="mb-0">📊 حالة الرسائل المرسلة</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-info">🖼️ رسائل الأشعة</h6>
+                            @if(isset($xrayMessages) && $xrayMessages->count() > 0)
+                                <div class="list-group">
+                                    @foreach($xrayMessages->take(3) as $msg)
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ $msg->examination_type }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ $msg->created_at->format('Y-m-d H:i') }}</small>
+                                            </div>
+                                            <span class="badge bg-{{ $msg->status == 'مكتمل' ? 'success' : ($msg->status == 'قيد التنفيذ' ? 'warning' : 'secondary') }}">
+                                                {{ $msg->status ?? 'جديد' }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @if($xrayMessages->count() > 3)
+                                    <div class="text-center mt-2">
+                                        <small class="text-muted">و {{ $xrayMessages->count() - 3 }} رسائل أخرى...</small>
+                                    </div>
+                                @endif
+                            @else
+                                <p class="text-muted">لا توجد رسائل مرسلة لفني الأشعة</p>
+                            @endif
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-warning">🧪 رسائل المخبر</h6>
+                            @if(isset($labMessages) && $labMessages->count() > 0)
+                                <div class="list-group">
+                                    @foreach($labMessages->take(3) as $msg)
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>{{ $msg->test_type }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ $msg->created_at->format('Y-m-d H:i') }}</small>
+                                            </div>
+                                            <span class="badge bg-{{ $msg->status == 'مكتمل' ? 'success' : ($msg->status == 'قيد التنفيذ' ? 'warning' : 'secondary') }}">
+                                                {{ $msg->status ?? 'جديد' }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @if($labMessages->count() > 3)
+                                    <div class="text-center mt-2">
+                                        <small class="text-muted">و {{ $labMessages->count() - 3 }} رسائل أخرى...</small>
+                                    </div>
+                                @endif
+                            @else
+                                <p class="text-muted">لا توجد رسائل مرسلة لفني المخبر</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Modal إلغاء الموعد من صفحة الزيارة -->
         <div class="modal fade" id="cancelVisitModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
@@ -632,7 +1043,7 @@
         function confirmPrescription(visitId) {
             Swal.fire({
                 title: 'هل أنت متأكد؟',
-                text: "هل تريد طلب عملية لهذا المريض؟",
+                text: "هل تريد طلب وصفة طبية لهذا المريض؟",
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'نعم، اطلب الآن',
@@ -642,6 +1053,60 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     window.location.href = "/visits/prescriptions/" + visitId;
+                }
+            });
+        }
+
+        // دالة تحديث حالة الرسالة إلى مكتملة
+        function markAsCompleted(messageId, type) {
+            Swal.fire({
+                title: 'تأكيد الإنجاز',
+                text: `هل تريد تأكيد إنجاز ${type === 'xray' ? 'فحص الأشعة' : 'التحليل المخبري'}؟`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، تم الإنجاز',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // إرسال طلب AJAX لتحديث الحالة
+                    fetch(`/messages/${type}/${messageId}/complete`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'تم الإنجاز بنجاح!',
+                                text: 'تم تحديث حالة الرسالة إلى مكتملة',
+                                icon: 'success',
+                                confirmButtonText: 'حسناً'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'خطأ!',
+                                text: 'حدث خطأ أثناء تحديث الحالة',
+                                icon: 'error',
+                                confirmButtonText: 'حسناً'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            title: 'خطأ!',
+                            text: 'حدث خطأ في الاتصال',
+                            icon: 'error',
+                            confirmButtonText: 'حسناً'
+                        });
+                    });
                 }
             });
         }
@@ -660,6 +1125,71 @@
         img.card-img-top {
             height: 200px;
             object-fit: cover;
+        }
+
+        /* أنماط إضافية للرسائل */
+        .list-group-item {
+            transition: all 0.3s ease;
+        }
+
+        .list-group-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .badge {
+            font-size: 0.8rem;
+            padding: 0.5em 0.8em;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .optgroup {
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .optgroup option {
+            font-weight: normal;
+            color: #212529;
+        }
+
+        /* تحسين أزرار الإجراءات */
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+            border-radius: 0.375rem;
+        }
+
+        /* تأثيرات بصرية للرسائل */
+        .border-info {
+            border-left: 4px solid #17a2b8 !important;
+        }
+
+        .border-warning {
+            border-left: 4px solid #ffc107 !important;
+        }
+
+        /* تحسين عرض الرسائل */
+        .message-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .priority-urgent {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border-color: #dc3545;
+        }
+
+        .priority-high {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-color: #ffc107;
         }
     </style>
 @endsection
