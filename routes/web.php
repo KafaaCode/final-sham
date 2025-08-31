@@ -166,6 +166,10 @@ Route::middleware(['auth'])
 
         Route::get('/visits/{visit}/export-pdf', [VisitController::class, 'exportVisitPdf'])->name('visits.exportPDF');
         Route::post('/visits/{id}/cancel', [VisitController::class, 'cancel'])->name('visits.cancel');
+        // end of visit
+        Route::post('/visits/{id}/end', [VisitController::class, 'endVisit'])->name('visits.end');
+        // update diagnosis and notes for a visit
+        Route::post('/visits/{id}/update-diagnosis-notes', [VisitController::class, 'updateDiagnosisAndNotes'])->name('visits.updateDiagnosisAndNotes');
 
         // روابط رسائل الأشعة
         Route::post('xray-messages/store', [\App\Http\Controllers\XrayMessageController::class, 'store'])->name('xray_messages.store');

@@ -3,7 +3,7 @@
 @section('content')
     <div class="container">
         <h2>إجراءات العمليات</h2>
-        <a href="{{ route('surgery_procedures.create') }}" class="btn btn-primary mb-3">إضافة إجراء جديد</a>
+        <!-- <a href="{{ route('surgery_procedures.create') }}" class="btn btn-primary mb-3">إضافة إجراء جديد</a> -->
 
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>

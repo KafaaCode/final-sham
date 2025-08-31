@@ -96,6 +96,50 @@
                     </div>
                 </div>
             </div>
+
+            <!-- button for end of visit -->
+            <div class="card-footer text-center">
+                <form action="{{ route('visits.end', $visit->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-danger">إنهاء الزيارة</button>
+                </form>
+            </div>
+
+            <!-- button for edit diagnosis and notes in dialog -->
+            <div class="card-footer text-center">
+                <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editVisitModal">
+                    اضافه التشخيص والملاحظات
+                </button>
+            </div>
+        </div>
+
+        <!-- dialog edit diagnosis and notes and script -->
+        <div class="modal fade" id="editVisitModal" tabindex="-1" aria-labelledby="editVisitModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editVisitModalLabel">تعديل التشخيص والملاحظات</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{{ route('visits.updateDiagnosisAndNotes', $visit->id) }}" method="POST">
+                            @csrf
+                            <div class="mb-3">
+                                <label for="diagnosis" class="form-label">التشخيص</label>
+                                <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3">{{ $visit->diagnosis }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">الملاحظات</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3">{{ $visit->notes }}</textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <style>
@@ -261,6 +305,27 @@
                 </div>
             </div>
 
+            <div class="card shadow-sm mb-3 rounded-4">
+                <div class="card-header bg-light rounded-top-4">
+                    <h5 class="mb-0">سجل الإجراءات التمريضية الأخيرة</h5>
+                </div>
+                <div class="card-body">
+                    @if(isset($nursingActions) && $nursingActions->count() > 0)
+                        <ul class="list-group list-group-flush">
+                            @foreach($nursingActions as $act)
+                                <li class="list-group-item">
+                                    <strong>{{ $act->nurse->first_name ?? $act->nurse->name ?? '-' }}</strong>
+                                    <div class="text-muted small">{{ $act->created_at->diffForHumans() }}</div>
+                                    <div class="mt-1">{{ $act->action }}</div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="text-muted">لا توجد إجراءات تمريضية مسجلة.</p>
+                    @endif
+                </div>
+            </div>
+
             <!-- Modal إرسال طلب رعاية تمريضية -->
             <div class="modal fade" id="sendNursingRequestModal" tabindex="-1" aria-labelledby="sendNursingRequestLabel" aria-hidden="true">
                 <div class="modal-dialog">
@@ -309,8 +374,8 @@
                                     <div class="list-group-item border-info">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div class="flex-grow-1">
-                                                <h6 class="mb-1">{{ $msg->examination_type }}</h6>
-                                                <p class="mb-1"><strong>التفاصيل:</strong> {{ $msg->examination_details ?? '-' }}</p>
+                                                <!-- <h6 class="mb-1">{{ $msg->examination_type }}</h6> -->
+                                                <!-- <p class="mb-1"><strong>التفاصيل:</strong> {{ $msg->examination_details ?? '-' }}</p> -->
                                                 <p class="mb-1"><strong>الرسالة:</strong> {{ $msg->message ?? '-' }}</p>
                                                 <small class="text-muted">{{ $msg->created_at->format('Y-m-d H:i') }}</small>
                                             </div>
@@ -339,7 +404,7 @@
                             <input type="hidden" name="patient_id" value="{{ $visit->patient_id }}">
                             <input type="hidden" name="visit_id" value="{{ $visit->id }}">
                             <div class="modal-body">
-                                <div class="row g-3">
+                                <!-- <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">🔍 نوع الفحص المطلوب</label>
                                         <select name="examination_type" class="form-control" required>
@@ -384,7 +449,7 @@
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">💊 معلومات المريض الطبية</label>
                                     <textarea name="medical_info" class="form-control" rows="2" placeholder="أي معلومات طبية مهمة للمريض (حساسية، أمراض مزمنة...)" ></textarea>
-                                </div>
+                                </div> -->
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">📝 رسالة إضافية للفني</label>
                                     <textarea name="message" class="form-control" rows="3" placeholder="أدخل أي تعليمات إضافية أو ملاحظات خاصة للفني..."></textarea>
@@ -419,8 +484,8 @@
                                     <div class="list-group-item border-warning">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div class="flex-grow-1">
-                                                <h6 class="mb-1">{{ $msg->test_type }}</h6>
-                                                <p class="mb-1"><strong>التفاصيل:</strong> {{ $msg->test_details ?? '-' }}</p>
+                                                <!-- <h6 class="mb-1">{{ $msg->test_type }}</h6> -->
+                                                <!-- <p class="mb-1"><strong>التفاصيل:</strong> {{ $msg->test_details ?? '-' }}</p> -->
                                                 <p class="mb-1"><strong>الرسالة:</strong> {{ $msg->message ?? '-' }}</p>
                                                 <small class="text-muted">{{ $msg->created_at->format('Y-m-d H:i') }}</small>
                                             </div>
@@ -449,52 +514,7 @@
                             <input type="hidden" name="patient_id" value="{{ $visit->patient_id }}">
                             <input type="hidden" name="visit_id" value="{{ $visit->id }}">
                             <div class="modal-body">
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">🧪 نوع التحليل المطلوب</label>
-                                        <select name="test_type" class="form-control" required>
-                                            <option value="">اختر نوع التحليل</option>
-                                            <optgroup label="تحاليل الدم الأساسية">
-                                                <option value="تحليل دم شامل (CBC)">تحليل دم شامل (CBC)</option>
-                                                <option value="تحليل كيمياء الدم">تحليل كيمياء الدم</option>
-                                                <option value="تحليل سكر الدم">تحليل سكر الدم</option>
-                                                <option value="تحليل وظائف الكبد">تحليل وظائف الكبد</option>
-                                                <option value="تحليل وظائف الكلى">تحليل وظائف الكلى</option>
-                                                <option value="تحليل الدهون">تحليل الدهون</option>
-                                            </optgroup>
-                                            <optgroup label="تحاليل البول والبراز">
-                                                <option value="تحليل بول شامل">تحليل بول شامل</option>
-                                                <option value="تحليل براز">تحليل براز</option>
-                                                <option value="تحليل بول 24 ساعة">تحليل بول 24 ساعة</option>
-                                            </optgroup>
-                                            <optgroup label="تحاليل متخصصة">
-                                                <option value="تحليل هرمونات الغدة الدرقية">تحليل هرمونات الغدة الدرقية</option>
-                                                <option value="تحليل هرمونات الجنس">تحليل هرمونات الجنس</option>
-                                                <option value="تحليل هرمونات النمو">تحليل هرمونات النمو</option>
-                                                <option value="تحليل مناعي">تحليل مناعي</option>
-                                                <option value="مزرعة بكتيرية">مزرعة بكتيرية</option>
-                                                <option value="تحليل حساسية">تحليل حساسية</option>
-                                            </optgroup>
-                                            <option value="أخرى">أخرى</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label fw-bold">⚡ أولوية التحليل</label>
-                                        <select name="priority" class="form-control">
-                                            <option value="عادية">عادية</option>
-                                            <option value="عاجلة">عاجلة</option>
-                                            <option value="طارئة">طارئة</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">📋 تفاصيل التحليل</label>
-                                    <textarea name="test_details" class="form-control" rows="3" placeholder="أدخل تفاصيل التحليل المطلوب، القيم المطلوبة، السبب..."></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">💊 معلومات المريض الطبية</label>
-                                    <textarea name="medical_info" class="form-control" rows="2" placeholder="أي معلومات طبية مهمة للمريض (حساسية، أمراض مزمنة، أدوية يتناولها...)" ></textarea>
-                                </div>
+                            
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">📝 رسالة إضافية للفني</label>
                                     <textarea name="message" class="form-control" rows="3" placeholder="أدخل أي تعليمات إضافية أو ملاحظات خاصة للفني..."></textarea>
@@ -769,26 +789,7 @@
         @endif
 
         @if(auth()->user()->hasRole('ممرض الجناح') || auth()->user()->hasRole('الدكتور'))
-            <div class="card shadow-sm mb-3 rounded-4">
-                <div class="card-header bg-light rounded-top-4">
-                    <h5 class="mb-0">سجل الإجراءات التمريضية الأخيرة</h5>
-                </div>
-                <div class="card-body">
-                    @if(isset($nursingActions) && $nursingActions->count() > 0)
-                        <ul class="list-group list-group-flush">
-                            @foreach($nursingActions as $act)
-                                <li class="list-group-item">
-                                    <strong>{{ $act->nurse->first_name ?? $act->nurse->name ?? '-' }}</strong>
-                                    <div class="text-muted small">{{ $act->created_at->diffForHumans() }}</div>
-                                    <div class="mt-1">{{ $act->action }}</div>
-                                </li>
-                            @endforeach
-                        </ul>
-                    @else
-                        <p class="text-muted">لا توجد إجراءات تمريضية مسجلة.</p>
-                    @endif
-                </div>
-            </div>
+            
             <div class="card shadow-sm mb-4 rounded-4">
                 <div class="card-header bg-success text-white rounded-top-4 d-flex justify-content-between align-items-center">
                     <span>💊 الوصفات الطبية</span>
@@ -901,7 +902,7 @@
         @endif
 
         <!-- قسم عرض الرسائل المكتملة والمعلقة -->
-        @if(auth()->user()->hasRole('الدكتور'))
+        <!-- @if(auth()->user()->hasRole('الدكتور'))
             <div class="card shadow-sm mb-3 rounded-4">
                 <div class="card-header bg-secondary text-white rounded-top-4">
                     <h5 class="mb-0">📊 حالة الرسائل المرسلة</h5>
@@ -934,36 +935,11 @@
                                 <p class="text-muted">لا توجد رسائل مرسلة لفني الأشعة</p>
                             @endif
                         </div>
-                        <div class="col-md-6">
-                            <h6 class="text-warning">🧪 رسائل المخبر</h6>
-                            @if(isset($labMessages) && $labMessages->count() > 0)
-                                <div class="list-group">
-                                    @foreach($labMessages->take(3) as $msg)
-                                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <strong>{{ $msg->test_type }}</strong>
-                                                <br>
-                                                <small class="text-muted">{{ $msg->created_at->format('Y-m-d H:i') }}</small>
-                                            </div>
-                                            <span class="badge bg-{{ $msg->status == 'مكتمل' ? 'success' : ($msg->status == 'قيد التنفيذ' ? 'warning' : 'secondary') }}">
-                                                {{ $msg->status ?? 'جديد' }}
-                                            </span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                @if($labMessages->count() > 3)
-                                    <div class="text-center mt-2">
-                                        <small class="text-muted">و {{ $labMessages->count() - 3 }} رسائل أخرى...</small>
-                                    </div>
-                                @endif
-                            @else
-                                <p class="text-muted">لا توجد رسائل مرسلة لفني المخبر</p>
-                            @endif
-                        </div>
+                        
                     </div>
                 </div>
             </div>
-        @endif
+        @endif -->
 
         <!-- Modal إلغاء الموعد من صفحة الزيارة -->
         <div class="modal fade" id="cancelVisitModal" tabindex="-1" aria-hidden="true">

@@ -278,5 +278,31 @@ class VisitController extends Controller
         return $mpdf->Output('visit_' . $visit->id . '.pdf', 'D');
     }
 
+    // end of visit
+    public function endVisit(Request $request, $id)
+    {
+        $visit = Visit::findOrFail($id);
+        $visit->status = '5'; // حالة "تم الانتهاء"
+        $visit->save();
+
+        return redirect()->route('visits.index')
+            ->with('success', 'تم إنهاء الزيارة بنجاح');
+    }
+
+    //update diagnosis and notes for a visit
+    public function updateDiagnosisAndNotes(Request $request, $id)
+    {
+        $request->validate([
+            'diagnosis' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        $visit = Visit::findOrFail($id);
+        $visit->diagnosis = $request->diagnosis;
+        $visit->notes = $request->notes;
+        $visit->save();
+
+        return redirect()->back()->with('success', 'تم تحديث التشخيص والملاحظات بنجاح');
+    }
 
 }

@@ -14,22 +14,14 @@ class XrayMessageController extends Controller
         $request->validate([
             'patient_id' => 'required',
             'visit_id' => 'required|exists:visits,id',
-            'examination_type' => 'required|string|max:255',
-            'examination_details' => 'nullable|string',
-            'medical_info' => 'nullable|string',
             'message' => 'nullable|string',
-            'priority' => 'nullable|in:عادية,عاجلة,طارئة',
         ]);
 
         $xrayMessage = XrayMessage::create([
             'patient_id' => $request->patient_id,
             'visit_id' => $request->visit_id,
             'doctor_id' => Auth::id(),
-            'examination_type' => $request->examination_type,
-            'examination_details' => $request->examination_details,
-            'medical_info' => $request->medical_info,
             'message' => $request->message,
-            'priority' => $request->priority ?? 'عادية',
             'status' => 'جديد',
         ]);
 
