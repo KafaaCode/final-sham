@@ -37,7 +37,7 @@
                                 عرض التفاصيل
                             </button>
 
-                            @if(auth()->user()->hasRole('فني العمليات') || auth()->user()->hasRole('Super Admin'))
+                            @if(auth()->user()->hasRole('فني العمليات'))
                                 <a href="{{ route('surgeries.edit', $surgery->id) }}" class="btn btn-sm btn-warning">تعديل</a>
                                 <form action="{{ route('surgeries.destroy', $surgery->id) }}" method="POST" style="display:inline-block;">
                                     @csrf
