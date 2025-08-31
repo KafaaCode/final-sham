@@ -56,6 +56,9 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('/app-assets/css-rtl/custom-rtl.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('/assets/css/style-rtl.css') }}">
     <!-- END: Custom CSS-->
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <style>
         .navigation-main .nav-item a {
             font-family: 'Cairo', sans-serif !important;
