@@ -282,7 +282,7 @@ class VisitController extends Controller
     public function endVisit(Request $request, $id)
     {
         $visit = Visit::findOrFail($id);
-        $visit->status = '5'; // حالة "تم الانتهاء"
+        $visit->status = 5; // حالة "تم الانتهاء"
         $visit->save();
 
         return redirect()->route('visits.index')

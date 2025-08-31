@@ -14,7 +14,7 @@
             </div>
         @endif
 
-        <form action="{{ route('appointments.store') }}" method="POST">
+        <form id="appointmentForm" action="{{ route('appointments.store') }}" method="POST">
             @csrf
             <div class="mb-1">
                 <label>الدكتور</label>
@@ -51,7 +51,7 @@
                 <input type="time" id="end_time" class="form-control" required>
             </div>
 
-            {{-- الحقول الفعلية المخفية التي ستُرسل للسيرفر --}}
+            {{-- الحقول المخفية المُرسلة للسيرفر --}}
             <input type="hidden" name="appointment_start_time" id="appointment_start_time">
             <input type="hidden" name="appointment_end_time" id="appointment_end_time">
 
@@ -61,35 +61,45 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            const dateInput = document.getElementById("appointment_date");
-            const startTimeInput = document.getElementById("start_time");
-            const endTimeInput = document.getElementById("end_time");
+            const form = document.getElementById("appointmentForm");
+
+            const dateInput   = document.getElementById("appointment_date");
+            const startInput  = document.getElementById("start_time");
+            const endInput    = document.getElementById("end_time");
 
             const startHidden = document.getElementById("appointment_start_time");
-            const endHidden = document.getElementById("appointment_end_time");
+            const endHidden   = document.getElementById("appointment_end_time");
 
-            // منع اختيار نهاية أقل من البداية
-            startTimeInput.addEventListener("change", function() {
-                endTimeInput.min = startTimeInput.value;
-                if (endTimeInput.value && endTimeInput.value < startTimeInput.value) {
-                    endTimeInput.value = "";
+            const buildDT = (d, t) => `${d} ${t}:00`;
+
+            function syncHidden() {
+                const d = dateInput.value;
+                const s = startInput.value;
+                const e = endInput.value;
+                startHidden.value = (d && s) ? buildDT(d, s) : "";
+                endHidden.value   = (d && e) ? buildDT(d, e) : "";
+            }
+
+            // منع نهاية أقل من البداية + مزامنة فورية
+            startInput.addEventListener("change", function() {
+                endInput.min = startInput.value || "";
+                if (endInput.value && startInput.value && endInput.value < startInput.value) {
+                    endInput.value = "";
                 }
+                syncHidden();
             });
 
-            // عند إرسال النموذج نجمع التاريخ + الوقت
-            document.querySelector("form").addEventListener("submit", function(e) {
-                const date = dateInput.value;
-                const start = startTimeInput.value;
-                const end = endTimeInput.value;
+            endInput.addEventListener("change", syncHidden);
+            dateInput.addEventListener("change", syncHidden);
 
-                if (!date || !start || !end) {
+            // قبل الإرسال تأكيد الامتلاء والمزامنة
+            form.addEventListener("submit", function(e) {
+                if (!dateInput.value || !startInput.value || !endInput.value) {
                     e.preventDefault();
                     alert("الرجاء إدخال التاريخ ووقت البداية والنهاية");
                     return;
                 }
-
-                startHidden.value = date + " " + start;
-                endHidden.value = date + " " + end;
+                syncHidden(); // تأكيد تعبئة الحقول المخفية
             });
         });
     </script>

@@ -97,20 +97,18 @@
                 </div>
             </div>
 
-            <!-- button for end of visit -->
-            <div class="card-footer text-center">
+            <!-- button for end of visit  butons in line -->
+            @if($visit->status != 5)
+            <div class="text-center mb-1  d-flex justify-content-center gap-2">
                 <form action="{{ route('visits.end', $visit->id) }}" method="POST">
                     @csrf
                     <button type="submit" class="btn btn-danger">إنهاء الزيارة</button>
                 </form>
-            </div>
-
-            <!-- button for edit diagnosis and notes in dialog -->
-            <div class="card-footer text-center">
                 <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editVisitModal">
                     اضافه التشخيص والملاحظات
                 </button>
             </div>
+            @endif
         </div>
 
         <!-- dialog edit diagnosis and notes and script -->
@@ -218,13 +216,13 @@
                 <div class="card-header bg-info rounded-top-4 d-flex justify-content-between align-items-center">
                     <h4 class="text-white">🖼️ صور الأشعة</h4>
 
-                    @if(auth()->user()->hasRole('الدكتور'))
+                    @if(auth()->user()->hasRole('الدكتور') && $visit->status != 5)
                         <button class="btn btn-sm btn-primary" onclick="confirmXray({{ $visit->id }})">
                             طلب صورة
                         </button>
                     @endif
 
-                    @if(auth()->user()->hasRole('فني الأشعة'))
+                    @if(auth()->user()->hasRole('فني الأشعة') && $visit->status != 5)
                         <!-- زر فتح النافذة -->
                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addXrayModal">
                             ➕ إضافة صورة الأشعة
@@ -294,11 +292,14 @@
         @if(auth()->user()->hasRole('الدكتور'))
             <!-- بطاقة إرسال طلب رعاية تمريضية -->
             <div class="card shadow-sm mb-3 rounded-4">
+                @if($visit->status != 5)
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">🩺 إرسال طلب رعاية تمريضية</h5>
                     <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#sendNursingRequestModal">
                         ➕ إرسال للممرض
                     </button>
+                </div>
+                @endif
                 </div>
                 <div class="card-body">
                     <p class="text-muted">استخدم هذا النموذج لإرسال تعليمات للرعاية التمريضية للمريض المرتبط بهذه الزيارة.</p>
@@ -356,12 +357,14 @@
         @if(auth()->user()->hasRole('الدكتور'))
             <!-- بطاقة إرسال رسالة لفني الأشعة -->
             <div class="card shadow-sm mb-3 rounded-4">
+                @if($visit->status != 5)
                 <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">🖼️ إرسال رسالة لفني الأشعة</h5>
                     <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#sendXrayMessageModal">
                         ➕ إرسال للفني
                     </button>
                 </div>
+                @endif
                 <div class="card-body">
                     <p class="text-muted">استخدم هذا النموذج لإرسال تعليمات وتفاصيل نوع الفحص المطلوب لفني الأشعة.</p>
                     
@@ -466,12 +469,14 @@
 
             <!-- بطاقة إرسال رسالة لفني المخبر -->
             <div class="card shadow-sm mb-3 rounded-4">
+                @if($visit->status != 5)
                 <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">🧪 إرسال رسالة لفني المخبر</h5>
                     <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#sendLabMessageModal">
                         ➕ إرسال للفني
                     </button>
                 </div>
+                @endif
                 <div class="card-body">
                     <p class="text-muted">استخدم هذا النموذج لإرسال تعليمات وتفاصيل نوع التحليل المطلوب لفني المخبر.</p>
                     
@@ -579,7 +584,7 @@
             <div class="card shadow-sm mb-1 rounded-4">
                 <div class="card-header bg-warning text-dark rounded-top-4">
                     🧪 التحاليل المخبرية
-                    @if(auth()->user()->hasRole('الدكتور'))
+                    @if(auth()->user()->hasRole('الدكتور') && $visit->status != 5)
                         <button class="btn btn-sm btn-primary" onclick="confirmlabTests({{ $visit->id }})">
                             طلب تحليل
                         </button>
@@ -653,13 +658,13 @@
             <div class="card shadow-sm mb-1 rounded-4">
                 <div class="card-header bg-danger text-dark rounded-top-4">
                     ⚕️ العمليات
-                    @if(auth()->user()->hasRole('الدكتور'))
+                    @if(auth()->user()->hasRole('الدكتور') && $visit->status != 5)
                         <button class="btn btn-sm btn-primary" onclick="confirmSurgerys({{ $visit->id }})">
                             طلب عملية
                         </button>
                     @endif
 
-                    @if(auth()->user()->hasRole('فني العمليات'))
+                    @if(auth()->user()->hasRole('فني العمليات') && $visit->status != 5)
                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addSurgeryModal">
                             ⚕️ اضافة عملية
                         </button>
@@ -793,13 +798,13 @@
             <div class="card shadow-sm mb-4 rounded-4">
                 <div class="card-header bg-success text-white rounded-top-4 d-flex justify-content-between align-items-center">
                     <span>💊 الوصفات الطبية</span>
-                    @if(auth()->user()->hasRole('الدكتور'))
+                    @if(auth()->user()->hasRole('الدكتور') && $visit->status != 5)
                         <button class="btn btn-sm btn-primary" onclick="confirmPrescription({{ $visit->id }})">
                             طلب وصفة
                         </button>
                     @endif
 
-                    @if(auth()->user()->hasRole('ممرض الجناح'))
+                    @if(auth()->user()->hasRole('ممرض الجناح') && $visit->status != 5)
                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPrescriptionModal">
                             ➕ إضافة وصفة
                         </button>

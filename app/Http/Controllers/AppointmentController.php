@@ -27,20 +27,21 @@ class AppointmentController extends Controller
         $request->validate([
             'doctor_id' => 'required|exists:users,id',
             'department_id' => 'required|exists:departments,id',
-            'appointment_end_time' => 'required',
             'appointment_start_time' => 'required',
+            'appointment_end_time' => 'required',
         ]);
 
         Appointment::create([
             'doctor_id' => $request->doctor_id,
             'department_id' => $request->department_id,
-            'appointment_end_time' => $request->appointment_end_time,
             'appointment_start_time' => $request->appointment_start_time,
+            'appointment_end_time' => $request->appointment_end_time,
             'status' => 'متوفر',
         ]);
 
         return redirect()->route('appointments.index')->with('success', 'تمت إضافة الموعد بنجاح');
     }
+
 
 
     public function edit($id)
