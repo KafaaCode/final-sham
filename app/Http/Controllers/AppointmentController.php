@@ -18,9 +18,11 @@ class AppointmentController extends Controller
     public function create()
     {
         $doctors = User::role('الدكتور')->get();
-        $departments = Department::all();
+        $departments = Department::with('doctors')->get();
+
         return view('dashboard.appointments.create', compact('doctors', 'departments'));
     }
+
 
     public function store(Request $request)
     {

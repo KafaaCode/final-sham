@@ -16,23 +16,23 @@
 
         <form id="appointmentForm" action="{{ route('appointments.store') }}" method="POST">
             @csrf
-            <div class="mb-1">
-                <label>الدكتور</label>
-                <select name="doctor_id" class="form-control" required>
-                    <option value="">اختر الدكتور</option>
-                    @foreach($doctors as $doctor)
-                        <option value="{{ $doctor->id }}">{{ $doctor->first_name }} {{ $doctor->last_name }}</option>
-                    @endforeach
-                </select>
-            </div>
 
+            {{-- القسم أولاً --}}
             <div class="mb-1">
                 <label>القسم</label>
-                <select name="department_id" class="form-control" required>
+                <select id="departmentSelect" name="department_id" class="form-control" required>
                     <option value="">اختر القسم</option>
                     @foreach($departments as $department)
                         <option value="{{ $department->id }}">{{ $department->name }}</option>
                     @endforeach
+                </select>
+            </div>
+
+            {{-- الدكتور مرتبط بالقسم --}}
+            <div class="mb-1">
+                <label>الدكتور</label>
+                <select id="doctorSelect" name="doctor_id" class="form-control" required disabled>
+                    <option value="">اختر القسم أولاً</option>
                 </select>
             </div>
 
@@ -70,6 +70,37 @@
             const startHidden = document.getElementById("appointment_start_time");
             const endHidden   = document.getElementById("appointment_end_time");
 
+            
+            const departmentSelect = document.getElementById("departmentSelect");
+            const doctorSelect     = document.getElementById("doctorSelect");
+
+            
+            const doctorsByDept = @json(
+                $departments->mapWithKeys(fn($d) => [$d->id => $d->doctors->map(fn($doc) => [
+                    'id' => $doc->id,
+                    'name' => $doc->first_name . ' ' . $doc->last_name
+                ])])
+            );
+
+            departmentSelect.addEventListener("change", function() {
+                const deptId = this.value;
+                doctorSelect.innerHTML = '<option value="">اختر الدكتور</option>';
+
+                if (deptId && doctorsByDept[deptId]) {
+                    doctorsByDept[deptId].forEach(doc => {
+                        const opt = document.createElement("option");
+                        opt.value = doc.id;
+                        opt.textContent = doc.name;
+                        doctorSelect.appendChild(opt);
+                    });
+                    doctorSelect.disabled = false;
+                } else {
+                    doctorSelect.innerHTML = '<option value="">اختر القسم أولاً</option>';
+                    doctorSelect.disabled = true;
+                }
+            });
+
+            // الدوال الخاصة بالوقت
             const buildDT = (d, t) => `${d} ${t}:00`;
 
             function syncHidden() {
@@ -80,7 +111,6 @@
                 endHidden.value   = (d && e) ? buildDT(d, e) : "";
             }
 
-            // منع نهاية أقل من البداية + مزامنة فورية
             startInput.addEventListener("change", function() {
                 endInput.min = startInput.value || "";
                 if (endInput.value && startInput.value && endInput.value < startInput.value) {
@@ -92,14 +122,13 @@
             endInput.addEventListener("change", syncHidden);
             dateInput.addEventListener("change", syncHidden);
 
-            // قبل الإرسال تأكيد الامتلاء والمزامنة
             form.addEventListener("submit", function(e) {
                 if (!dateInput.value || !startInput.value || !endInput.value) {
                     e.preventDefault();
                     alert("الرجاء إدخال التاريخ ووقت البداية والنهاية");
                     return;
                 }
-                syncHidden(); // تأكيد تعبئة الحقول المخفية
+                syncHidden();
             });
         });
     </script>

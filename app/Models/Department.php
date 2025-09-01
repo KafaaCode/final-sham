@@ -19,9 +19,14 @@ class Department extends Model
         return $this->hasMany(Visit::class);
     }
 
-
     public function appointments()
     {
         return $this->hasMany(Appointment::class);
     }
+
+    public function doctors()
+    {
+        return $this->hasMany(User::class)->whereHas('roles', fn($q) => $q->where('name', 'الدكتور'));
+    }
+
 }
