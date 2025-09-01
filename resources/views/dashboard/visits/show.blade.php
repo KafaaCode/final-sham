@@ -606,11 +606,11 @@
             <div class="card shadow-sm mb-1 rounded-4">
                 <div class="card-header bg-warning text-dark rounded-top-4">
                     🧪 التحاليل المخبرية
-                    @if(auth()->user()->hasRole('الدكتور') && $visit->status != 5)
+                    <!-- @if(auth()->user()->hasRole('الدكتور') && $visit->status != 5)
                         <button class="btn btn-sm btn-primary" onclick="showLabRequestModal({{ $visit->id }}, '{{ $visit->patient->name }}')">
                             🧪 طلب تحليل
                         </button>
-                    @endif
+                    @endif -->
 
                     @if(auth()->user()->hasRole('فني المخبر'))
                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addLabTestModal">
