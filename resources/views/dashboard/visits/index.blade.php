@@ -57,6 +57,11 @@
                                 <p><strong style="font-weight: bold;">ملاحظات الطبيب:</strong>
                                     {{ $visit->notes ?? '-' }}</p>
                             </div>
+                            @if($visit->status == 5)
+                                        <div class="card-footer text-muted bg-danger">
+                                            <small>تم انهاء الزيارة</small>
+                                        </div>
+                                    @endif
                         </div>
                     </div>
                 @endforeach

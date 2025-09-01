@@ -13,11 +13,7 @@ class XrayMessage extends Model
         'patient_id',
         'visit_id',
         'doctor_id',
-        'examination_type',
-        'examination_details',
-        'medical_info',
         'message',
-        'priority',
         'status',
     ];
 

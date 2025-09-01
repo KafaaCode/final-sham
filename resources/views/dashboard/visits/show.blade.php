@@ -188,12 +188,6 @@
                                             <strong>👨‍⚕️ الطبيب:</strong> {{ $msg->doctor->name ?? 'غير محدد' }}
                                         </div>
                                         <div class="mb-2">
-                                            <strong>📋 التفاصيل:</strong> {{ $msg->examination_details ?? '-' }}
-                                        </div>
-                                        <div class="mb-2">
-                                            <strong>💊 معلومات طبية:</strong> {{ $msg->medical_info ?? '-' }}
-                                        </div>
-                                        <div class="mb-2">
                                             <strong>📝 رسالة:</strong> {{ $msg->message ?? '-' }}
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center">
@@ -217,7 +211,7 @@
                     <h4 class="text-white">🖼️ صور الأشعة</h4>
 
                     @if(auth()->user()->hasRole('الدكتور') && $visit->status != 5)
-                        <button class="btn btn-sm btn-primary" onclick="confirmXray({{ $visit->id }})">
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#sendXrayRequestModal">
                             طلب صورة
                         </button>
                     @endif
@@ -251,6 +245,33 @@
                         <p class="text-muted mt-1">لا توجد صور أشعة لهذه الزيارة.</p>
                     @endif
                 </div>
+
+                <!-- Modal إرسال طلب  صورة اشعه -->
+                <div class="modal fade" id="sendXrayRequestModal" tabindex="-1" aria-labelledby="sendXrayRequestLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content rounded-4 shadow">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title" id="sendXrayRequestLabel">إرسال طلب صورة أشعة</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                            </div>
+                            <form action="{{ route('xray_messages.store') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="patient_id" value="{{ $visit->patient_id }}">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">رسالة إلى فني الأشعة</label>
+                                        <textarea name="message" class="form-control" rows="4" required placeholder="أدخل الإجراءات أو الملاحظات لفني الأشعة..."></textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                    <button type="submit" class="btn btn-success">إرسال الطلب</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- نافذة منبثقة لإضافة صورة -->

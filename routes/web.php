@@ -57,6 +57,14 @@ Route::middleware('auth')->group(function () {
     Route::resource('users', UserController::class);
     Route::get('user-create', [UserController::class, 'create_user']);
     Route::resource('products', ProductController::class);
+
+     Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
+        Route::get('/permissions-create', [PermissionController::class, 'create'])->name('permissions.create');
+        Route::post('/permissions', [PermissionController::class, 'store'])->name('permissions.store');
+        Route::get('/permissions/{permission}', [PermissionController::class, 'edit'])->name('permissions.edit');
+        Route::put('/permissions/{permission}', [PermissionController::class, 'update'])->name('permissions.update');
+        Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
+
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -70,17 +78,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('nursing_requests/{id}/actions', [NursingRequestController::class, 'getActions']);
     Route::post('nursing_requests/actions/store', [NursingRequestController::class, 'storeAction'])->name('nursing_requests.actions.store');
     Route::put('nursing_requests/actions/{id}', [NursingRequestController::class, 'updateAction']);
-
-});
-Route::middleware(['auth'])
-    ->group(function () {
-        Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
-        Route::get('/permissions-create', [PermissionController::class, 'create'])->name('permissions.create');
-        Route::post('/permissions', [PermissionController::class, 'store'])->name('permissions.store');
-        Route::get('/permissions/{permission}', [PermissionController::class, 'edit'])->name('permissions.edit');
-        Route::put('/permissions/{permission}', [PermissionController::class, 'update'])->name('permissions.update');
-        Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
-
+    // نهاية طلبات الرعاية التمريضية
+    
+       
         Route::get('departments', [DepartmentController::class, 'index'])->name('departments.index');
         Route::get('departments/create', [DepartmentController::class, 'create'])->name('departments.create');
         Route::post('departments/store', [DepartmentController::class, 'store'])->name('departments.store');

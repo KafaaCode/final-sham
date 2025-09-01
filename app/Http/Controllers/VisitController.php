@@ -119,6 +119,21 @@ class VisitController extends Controller
             return back()->with('error', 'لقد قمت بحجز موعد آخر في نفس التاريخ والفترة الزمنية.');
         }
 
+        $conflict = Visit::where('patient_id', Auth::id())
+            ->whereHas('appointment', function ($query) use ($appointment) {
+                $query->whereDate('appointment_start_time', date('Y-m-d', strtotime($appointment->appointment_start_time)))
+                    ->where(function ($q) use ($appointment) {
+                        $q->whereBetween('appointment_start_time', [$appointment->appointment_start_time, $appointment->appointment_end_time])
+                            ->orWhereBetween('appointment_end_time', [$appointment->appointment_start_time, $appointment->appointment_end_time]);
+                    })
+                    // التأكد من أن الطبيب مختلف
+                    ->where('doctor_id', '!=', $appointment->doctor_id);
+            })->exists();
+
+        if ($conflict) {
+            return back()->with('error', 'لديك موعد آخر بنفس الوقت مع طبيب مختلف.');
+        }
+
         $visit = Visit::create([
             'patient_id' => Auth::id(),
             'department_id' => $appointment->department_id,

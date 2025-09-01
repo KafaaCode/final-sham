@@ -93,10 +93,10 @@
                         class="form-control">
                 </div>
 
-                {{-- نوع الوظيفة --}}
+                {{--  مكان الولادة --}}
                 <div class="col-md-4 mb-1">
-                    <label for="job_type" class="form-label">نوع الوظيفة</label>
-                    <input type="text" id="job_type" name="job_type" value="{{ old('job_type') }}" class="form-control">
+                    <label for="place_of_birth" class="form-label">مكان الولادة</label>
+                    <input type="text" id="place_of_birth" name="place_of_birth" value="{{ old('place_of_birth') }}" class="form-control">
                 </div>
 
                 {{-- البريد الإلكتروني --}}

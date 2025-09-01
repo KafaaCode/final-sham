@@ -32,6 +32,7 @@ class User extends Authenticatable
         'national_id',
         'place_of_birth',
         'email',
+        'department_id',
     ];
 
     public function appointmentsAsDoctor()

@@ -265,18 +265,6 @@
                 @endif
                 @if (auth()->user()->hasRole('ممرض الجناح'))
                     <li class="nav-item">
-                        <a class="d-flex align-items-center" href="/dashboard">
-                            <i class="fa-solid fa-building-columns"></i>
-                            <span class="menu-title text-truncate">طلبات الوصفات الحالية</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="d-flex align-items-center" href="{{ route('surgeries.index') }}">
-                            <i class="fa-solid fa-x-ray"></i>
-                            <span class="menu-title text-truncate">كل الوصفات الطبية</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="d-flex align-items-center" href="{{ route('nursing_requests.index') }}">
                             <i class="fa-solid fa-hand-holding-medical"></i>
                             <span class="menu-title text-truncate">طلبات الرعاية التمريضية</span>

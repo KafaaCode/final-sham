@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Department;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -59,7 +60,6 @@ class UserController extends Controller
             ->with('success', 'تمت إضافة المستخدم بنجاح');
     }
 
-
     public function update(Request $request, $id)
     {
         $this->validate($request, [
@@ -76,7 +76,12 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,' . $id,
             'password' => 'nullable|confirmed|min:6',
             'roles' => 'required|array',
+            'department_id' => 'nullable|exists:departments,id',
         ]);
+
+        if (in_array('doctor', $request->roles) && empty($request->department_id)) {
+            return back()->withErrors(['department_id' => 'يجب اختيار القسم للطبيب.'])->withInput();
+        }
 
         $input = $request->all();
         if (!empty($input['password'])) {
@@ -94,7 +99,6 @@ class UserController extends Controller
             ->with('success', 'تم تعديل المستخدم بنجاح');
     }
 
-
     public function show($id)
     {
         $user = User::find($id);
@@ -103,13 +107,13 @@ class UserController extends Controller
 
     public function edit($id)
     {
-        $user = User::find($id);
+        $user = User::findOrFail($id);
         $allRoles = Role::pluck('name', 'name')->all();
         $userRole = $user->roles->pluck('name', 'name')->all();
+        $departments = Department::get();
 
-        return view('users.edit', compact('user', 'allRoles', 'userRole'));
+        return view('users.edit', compact('user', 'allRoles', 'userRole', 'departments'));
     }
-
 
     public function destroy(User $user)
     {

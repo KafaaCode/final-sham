@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\Department;
 use App\Models\User;
 use App\Models\Visit;
+use App\Models\XrayMessage;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
@@ -68,6 +69,12 @@ class Controller extends BaseController
             ->where('status', 1)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+
+        $xray_requests = XrayMessage::with(['patient', 'doctor', 'visit'])
+            ->where('status', 'جديد')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
 
         $labTests_visits = Visit::with(['patient', 'department', 'appointment'])
             ->where('status', 2)
@@ -138,7 +145,8 @@ class Controller extends BaseController
             'patients',
             'visits',
             'search',
-            'selectedDate'
+            'selectedDate',
+            'xray_requests'
         ));
     }
 }

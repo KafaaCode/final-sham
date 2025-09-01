@@ -348,6 +348,11 @@
                                         عرض التفاصيل
                                     </a>
                                 </div>
+                                @if($visit->status == 5)
+                                        <div class="card-footer text-muted bg-danger">
+                                            <small>تم انهاء الزيارة</small>
+                                        </div>
+                                    @endif
                             </div>
                         </div>
                     @endforeach
@@ -378,49 +383,54 @@
         </style>
     @elseif(auth()->user()->hasRole('فني الأشعة'))
         <div class="container">
-            <h2 class="fw-bold text-center mb-1">📋 طلبات صور الاشعة الحالية</h2>
-            @if($xray_visits->count() > 0)
+            <h2 class="fw-bold text-center mb-1">📋 طلبات صور الأشعة الحالية</h2>
+            @if($xray_requests->count() > 0)
                 <div class="row g-4">
-                    @foreach($xray_visits as $visit)
+                    @foreach($xray_requests as $request)
                         <div class="col-md-4">
-                            <div
-                                class="card shadow-sm rounded-4 h-80 visit-card
-                                                                                                                                                                                                                                                                                        @if($visit->appointment->appointment_start_time < now()) border-secondary
-                                                                                                                                                                                                                                                                                        @else border-primary @endif">
-                                <div
-                                    class="card-header text-white
-                                                                                                                                                                                                                                                                                            @if($visit->appointment->appointment_start_time < now()) bg-secondary
-                                                                                                                                                                                                                                                                                            @else bg-primary @endif
-                                                                                                                                                                                                                                                                                            rounded-top-4 text-center">
-                                    {{ $visit->appointment->appointment_start_time < now() ? 'منتهي' : 'نشط' }}
+                            <div class="card shadow-sm rounded-4 h-80 visit-card
+                                @if($request->created_at < now()) border-secondary
+                                @else border-primary @endif">
+
+                                <div class="card-header text-white
+                                    @if($request->created_at < now()) bg-secondary
+                                    @else bg-primary @endif
+                                    rounded-top-4 text-center">
+                                    {{ $request->status == 'done' ? 'منتهي' : 'نشط' }}
                                 </div>
+
                                 <div class="card-body">
-                                    <h5 class="card-title mt-1 fw-bold">اسم المريض: {{ $visit->patient->first_name }}
-                                        {{ $visit->patient->last_name }}
+                                    <h5 class="card-title mt-1 fw-bold">
+                                        اسم المريض: {{ $request->patient->first_name }} {{ $request->patient->last_name }}
                                     </h5>
-                                    <p><strong>🏥 القسم:</strong> {{ $visit->department->name }}</p>
-                                    <p><strong>📅 التاريخ:</strong> {{ $visit->appointment->appointment_start_time }}</p>
-                                    <p><strong>🕒 وقت البداية:</strong> {{ $visit->appointment->appointment_start_time }}</p>
-                                    <p><strong>🕒 وقت النهاية:</strong> {{ $visit->appointment->appointment_end_time }}</p>
-                                    <p><strong>📝 التشخيص:</strong> {{ $visit->diagnosis ?? '-' }}</p>
-                                    <p><strong>📌 الملاحظات:</strong> {{ $visit->notes ?? '-' }}</p>
-                                    <a href="{{ route('visits.show', $visit->id) }}" class="btn btn-sm btn-primary">
+                                    <p><strong>📅 التاريخ:</strong> {{ $request->created_at->format('Y-m-d H:i') }}</p>
+                                    <p><strong>📌 الملاحظات:</strong> {{ $request->message ?? '-' }}</p>
+
+                                    <a href="{{ route('visits.show', $request->visit_id) }}" class="btn btn-sm btn-primary">
                                         عرض التفاصيل
                                     </a>
+
+                                    @if($request->status == 'done')
+                                        <div class="card-footer text-muted">
+                                            <small>تم إنهاء الطلب</small>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                     @endforeach
                 </div>
+
                 <div class="mt-4">
-                    {{ $visits->links() }}
+                    {{ $xray_requests->links() }}
                 </div>
             @else
                 <div class="alert alert-info text-center fs-5 py-3">
-                    لا توجد صور اشعة حالية.
+                    لا توجد طلبات أشعة حالية.
                 </div>
             @endif
         </div>
+
 
         <style>
             .visit-card {
@@ -468,6 +478,11 @@
                                         عرض التفاصيل
                                     </a>
                                 </div>
+                                @if($visit->status == 5)
+                                        <div class="card-footer text-muted bg-danger">
+                                            <small>تم انهاء الزيارة</small>
+                                        </div>
+                                    @endif
                             </div>
                         </div>
                     @endforeach
@@ -528,6 +543,11 @@
                                         عرض التفاصيل
                                     </a>
                                 </div>
+                                @if($visit->status == 5)
+                                        <div class="card-footer text-muted bg-danger">
+                                            <small>تم انهاء الزيارة</small>
+                                        </div>
+                                    @endif
                             </div>
                         </div>
                     @endforeach
@@ -588,6 +608,11 @@
                                         عرض التفاصيل
                                     </a>
                                 </div>
+                                @if($visit->status == 5)
+                                        <div class="card-footer text-muted bg-danger">
+                                            <small>تم انهاء الزيارة</small>
+                                        </div>
+                                    @endif
                             </div>
                         </div>
                     @endforeach
