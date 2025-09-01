@@ -87,6 +87,7 @@
             </div>
 
             {{-- الصلاحيات --}}
+            @if(auth()->user()->hasRole('Super Admin'))
             <div class="col-12 mb-3">
                 <label class="form-label">الصلاحيات</label>
                 <div class="row">
@@ -101,6 +102,7 @@
                     @endforeach
                 </div>
             </div>
+            @endif
 
             {{-- اختيار القسم للطبيب فقط --}}
             <div class="col-12 mb-3 doctor-department" style="display: none;">

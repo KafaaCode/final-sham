@@ -37,8 +37,8 @@ class AppointmentController extends Controller
         if (strtotime($request->appointment_start_time) < time()) {
             return back()->withErrors(['appointment_start_time' => 'وقت بداية الموعد يجب أن يكون في المستقبل'])->withInput();
         }
-        // check is doctor has appointment in this time
-        $hasAppointment = Appointment::where('doctor_id', $request->doctor_id)
+        // check is doctor has appointment in this time and not cancled
+        $hasAppointment = Appointment::where('doctor_id', $request->doctor_id)->where('status', '!=', 'ملغي')
             ->where(function ($query) use ($request) {
                 $query->whereBetween('appointment_start_time', [$request->appointment_start_time, $request->appointment_end_time])
                     ->orWhereBetween('appointment_end_time', [$request->appointment_start_time, $request->appointment_end_time]);

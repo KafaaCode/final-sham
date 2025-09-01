@@ -13,11 +13,7 @@ class LabMessage extends Model
         'patient_id',
         'visit_id',
         'doctor_id',
-        'test_type',
-        'test_details',
-        'medical_info',
         'message',
-        'priority',
         'status',
     ];
 

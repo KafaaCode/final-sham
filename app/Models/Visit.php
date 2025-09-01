@@ -51,4 +51,14 @@ class Visit extends Model
     {
         return $this->hasMany(Surgery::class);
     }
+
+    public function labMessages()
+    {
+        return $this->hasMany(LabMessage::class);
+    }
+
+    public function xrayMessages()
+    {
+        return $this->hasMany(XrayMessage::class);
+    }
 }

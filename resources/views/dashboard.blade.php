@@ -578,7 +578,7 @@
         </style>
     @elseif(auth()->user()->hasRole('ممرض الجناح'))
         <div class="container">
-            <h2 class="fw-bold text-center mb-1">📋 طلبات الوصفات الطبية</h2>
+            <h2 class="fw-bold text-center mb-1">📋 طلبات العناية التمريضية</h2>
             @if($prescriptions_visits->count() > 0)
                 <div class="row g-4">
                     @foreach($prescriptions_visits as $visit)

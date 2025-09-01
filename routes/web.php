@@ -184,9 +184,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('xray-messages', [\App\Http\Controllers\XrayMessageController::class, 'index'])->name('xray_messages.index');
 
         // روابط رسائل المخبر
+        Route::get('lab-messages', [\App\Http\Controllers\LabMessageController::class, 'index'])->name('lab_messages.index');
         Route::post('lab-messages/store', [\App\Http\Controllers\LabMessageController::class, 'store'])->name('lab_messages.store');
         Route::post('messages/lab/{id}/complete', [\App\Http\Controllers\LabMessageController::class, 'markAsCompleted'])->name('lab_messages.complete');
-        Route::get('lab-messages', [\App\Http\Controllers\LabMessageController::class, 'index'])->name('lab_messages.index');
 
     });
 

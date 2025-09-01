@@ -12,9 +12,8 @@ class LabMessageController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'patient_id' => 'required',
             'visit_id' => 'required|exists:visits,id',
-            'message' => 'nullable|string',
+            'message' => 'required|string',
         ]);
 
         $labMessage = LabMessage::create([
@@ -25,7 +24,10 @@ class LabMessageController extends Controller
             'status' => 'جديد',
         ]);
 
-        return redirect()->back()->with('success', 'تم إرسال رسالة المخبر بنجاح');
+        return response()->json([
+            'success' => true,
+            'message' => 'تم إرسال طلب التحليل المخبري بنجاح'
+        ]);
     }
 
     public function markAsCompleted($id)

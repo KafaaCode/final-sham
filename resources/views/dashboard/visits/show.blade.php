@@ -607,8 +607,8 @@
                 <div class="card-header bg-warning text-dark rounded-top-4">
                     🧪 التحاليل المخبرية
                     @if(auth()->user()->hasRole('الدكتور') && $visit->status != 5)
-                        <button class="btn btn-sm btn-primary" onclick="confirmlabTests({{ $visit->id }})">
-                            طلب تحليل
+                        <button class="btn btn-sm btn-primary" onclick="showLabRequestModal({{ $visit->id }}, '{{ $visit->patient->name }}')">
+                            🧪 طلب تحليل
                         </button>
                     @endif
 
@@ -619,18 +619,48 @@
                     @endif
                 </div>
                 <div class="card-body">
-                    @if($visit->labTests->count() > 0)
-                        <ul class="list-group list-group-flush">
-                            @foreach($visit->labTests as $lab)
-                                <li class="list-group-item">
-                                    <strong>النتيجة:</strong> {{ $lab->result ?? '-' }} <br>
-                                    <strong>تقرير فني:</strong> {{ $lab->technical_report ?? '-' }} <br>
-                                    <strong>الفني:</strong> {{ $lab->technician_name ?? '-' }}
-                                </li>
+                    <!-- عرض طلبات التحليل المخبري -->
+                    @if($visit->labMessages && $visit->labMessages->count() > 0)
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-warning mb-2">📨 طلبات التحليل:</h6>
+                            @foreach($visit->labMessages as $labMessage)
+                                <div class="border rounded p-3 mb-2 {{ $labMessage->status == 'مكتمل' ? 'bg-light' : '' }}">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <strong class="text-primary">طلب تحليل مخبري</strong>
+                                        </div>
+                                        <span class="badge bg-{{ $labMessage->status == 'مكتمل' ? 'success' : 'secondary' }}">
+                                            {{ $labMessage->status }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        @if($labMessage->message)
+                                            <p class="mb-1"><strong>رسالة الطبيب:</strong> {{ $labMessage->message }}</p>
+                                        @endif
+                                        <p class="mb-1"><strong>التاريخ:</strong> {{ $labMessage->created_at->format('Y-m-d H:i') }}</p>
+                                    </div>
+                                </div>
                             @endforeach
-                        </ul>
+                        </div>
+                    @endif
+                    
+                    <!-- عرض التحاليل المخبرية النهائية -->
+                    @if($visit->labTests->count() > 0)
+                        <div class="mt-3">
+                            <h6 class="fw-bold text-success mb-2">🔬 نتائج التحاليل:</h6>
+                            <ul class="list-group list-group-flush">
+                                @foreach($visit->labTests as $lab)
+                                    <li class="list-group-item">
+                                        <strong>النتيجة:</strong> {{ $lab->result ?? '-' }} <br>
+                                        <strong>تقرير فني:</strong> {{ $lab->technical_report ?? '-' }} <br>
+                                        <strong>الفني:</strong> {{ $lab->technician_name ?? '-' }}
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
                     @else
-                        <p class="text-muted mt-1">لا توجد تحاليل مخبرية لهذه الزيارة.</p>
+                        <p class="text-muted mt-1">لا توجد تحاليل مخبرية نهائية لهذه الزيارة.</p>
                     @endif
                 </div>
             </div>
@@ -1111,6 +1141,90 @@
                         });
                     });
                 }
+            });
+        }
+
+        // دالة عرض نافذة طلب التحليل
+        function showLabRequestModal(visitId, patientName) {
+            Swal.fire({
+                title: 'طلب تحليل مخبري',
+                html: `
+                    <div class="text-start">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">المريض: ${patientName}</label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">رسالة لفني المخبر:</label>
+                            <textarea id="message" class="form-control" rows="4" placeholder="اكتب رسالتك لفني المخبر توضح فيها التحليل المطلوب..."></textarea>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'إرسال الطلب',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                width: '400px',
+                preConfirm: () => {
+                    const message = document.getElementById('message').value;
+
+                    if (!message.trim()) {
+                        Swal.showValidationMessage('يرجى كتابة رسالة لفني المخبر');
+                        return false;
+                    }
+
+                    return { message };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // إرسال الطلب
+                    sendLabRequest(visitId, result.value);
+                }
+            });
+        }
+
+        // دالة إرسال طلب التحليل
+        function sendLabRequest(visitId, data) {
+            fetch('/lab-messages/store', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    visit_id: visitId,
+                    patient_id: {{ $visit->patient_id }},
+                    message: data.message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'تم الإرسال بنجاح!',
+                        text: 'تم إرسال طلب التحليل المخبري',
+                        icon: 'success',
+                        confirmButtonText: 'حسناً'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'خطأ!',
+                        text: data.message || 'حدث خطأ أثناء إرسال الطلب',
+                        icon: 'error',
+                        confirmButtonText: 'حسناً'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'خطأ!',
+                    text: 'حدث خطأ في الاتصال',
+                    icon: 'error',
+                    confirmButtonText: 'حسناً'
+                });
             });
         }
     </script>
