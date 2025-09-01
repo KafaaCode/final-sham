@@ -45,8 +45,8 @@
                         <td>{{ $appointment->appointment_end_time }}</td>
                         <td>{{ ucfirst($appointment->status) }}</td>
                         <td>
-                            <a href="{{ route('appointments.edit', $appointment->id) }}"
-                                class="btn btn-sm btn-warning">تعديل</a>
+                            <!-- <a href="{{ route('appointments.edit', $appointment->id) }}"
+                                class="btn btn-sm btn-warning">تعديل</a> -->
 
                             <form action="{{ route('appointments.destroy', $appointment->id) }}" method="POST"
                                 style="display:inline-block;">
