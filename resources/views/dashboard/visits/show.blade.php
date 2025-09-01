@@ -210,11 +210,11 @@
                 <div class="card-header bg-info rounded-top-4 d-flex justify-content-between align-items-center">
                     <h4 class="text-white">🖼️ صور الأشعة</h4>
 
-                    @if(auth()->user()->hasRole('الدكتور') && $visit->status != 5)
+                    <!-- @if(auth()->user()->hasRole('الدكتور') && $visit->status != 5)
                         <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#sendXrayRequestModal">
                             طلب صورة
                         </button>
-                    @endif
+                    @endif -->
 
                     @if(auth()->user()->hasRole('فني الأشعة') && $visit->status != 5)
                         <!-- زر فتح النافذة -->

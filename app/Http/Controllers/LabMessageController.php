@@ -24,10 +24,7 @@ class LabMessageController extends Controller
             'status' => 'جديد',
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'تم إرسال طلب التحليل المخبري بنجاح'
-        ]);
+        return back()->with('success', 'تم إرسال طلب التحليل المخبري بنجاح');
     }
 
     public function markAsCompleted($id)
