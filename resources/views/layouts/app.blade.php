@@ -218,12 +218,12 @@
                             <span class="menu-title text-truncate">مناوباتي</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="d-flex align-items-center" href="{{ route('lab_messages.index') }}">
                             <i class="fa-solid fa-flask"></i>
                             <span class="menu-title text-truncate">طلبات التحليل المخبري</span>
                         </a>
-                    </li>
+                    </li> -->
                 @endif
                 @if (auth()->user()->hasRole('موظف الاستقبال') || auth()->user()->hasRole('Super Admin'))
                     <li class="nav-item">
